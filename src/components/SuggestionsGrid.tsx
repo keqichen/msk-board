@@ -4,26 +4,39 @@ import {
   type GridColDef,
   type GridRowSelectionModel,
 } from "@mui/x-data-grid";
-import { Chip, Stack, Snackbar, Alert } from "@mui/material";
+import {
+  Chip,
+  Stack,
+  Snackbar,
+  Alert,
+  IconButton,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
+import {
+  MoreHoriz as MoreHorizIcon,
+  Edit as EditIcon,
+} from "@mui/icons-material";
 import { useMutation, useQuery } from "@apollo/client/react";
 
 import {
   SuggestionsDocument,
   BatchUpdateSuggestionStatusDocument,
   SuggestionStatus,
+  type Suggestion,
 } from "../gql/generated";
 import { useBoardStore } from "../store/useBoardStore";
 import SuggestionsFilterBar from "./SuggestionsFilterBar";
 import SuggestionsGridFooter from "./SuggestionsGridFooter";
 import { getStatusColor } from "../constants/suggestions";
 import useOpen from "../hooks/useOpen";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 // Lazy load modals
 const BulkAssignModal = React.lazy(() => import("./BulkAssignModal"));
-const CreateSuggestionModal = React.lazy(
-  () => import("./CreateSuggestionModal")
-);
+const SuggestionModal = React.lazy(() => import("./SuggestionModal"));
 
 const SuggestionsGrid = () => {
   const {
@@ -33,12 +46,16 @@ const SuggestionsGrid = () => {
   } = useOpen();
 
   const {
-    isVisible: isCreateModalOpen,
-    open: openCreateModal,
-    close: closeCreateModal,
+    isVisible: isSuggestionModalOpen,
+    open: openSuggestionModal,
+    close: closeSuggestionModal,
   } = useOpen();
 
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [selectedSuggestion, setSelectedSuggestion] =
+    useState<Suggestion | null>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [menuSuggestion, setMenuSuggestion] = useState<Suggestion | null>(null);
 
   const [selection, setSelection] = useState<GridRowSelectionModel>({
     type: "include",
@@ -56,6 +73,40 @@ const SuggestionsGrid = () => {
   });
 
   const [batchUpdate] = useMutation(BatchUpdateSuggestionStatusDocument);
+
+  const handleEdit = useCallback(
+    (suggestion: Suggestion) => {
+      setSelectedSuggestion(suggestion);
+      openSuggestionModal();
+      setAnchorEl(null);
+      setMenuSuggestion(null);
+    },
+    [openSuggestionModal]
+  );
+
+  const handleCreate = useCallback(() => {
+    setSelectedSuggestion(null);
+    openSuggestionModal();
+  }, [openSuggestionModal]);
+
+  const handleModalClose = useCallback(() => {
+    closeSuggestionModal();
+    setSelectedSuggestion(null);
+  }, [closeSuggestionModal]);
+
+  const handleMenuOpen = useCallback(
+    (event: React.MouseEvent<HTMLElement>, suggestion: Suggestion) => {
+      event.stopPropagation();
+      setAnchorEl(event.currentTarget);
+      setMenuSuggestion(suggestion);
+    },
+    []
+  );
+
+  const handleMenuClose = useCallback(() => {
+    setAnchorEl(null);
+    setMenuSuggestion(null);
+  }, []);
 
   const columns: GridColDef[] = [
     { field: "employeeName", headerName: "Employee", flex: 1, minWidth: 180 },
@@ -93,9 +144,26 @@ const SuggestionsGrid = () => {
       type: "string",
       width: 170,
     },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 80,
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
+      renderCell: ({ row }) => (
+        <IconButton
+          size="small"
+          onClick={(e) => handleMenuOpen(e, row)}
+          color="default"
+        >
+          <MoreHorizIcon fontSize="small" />
+        </IconButton>
+      ),
+    },
   ];
 
-  const handleBatchUpdate = async () => {
+  const handleBatchUpdate = useCallback(async () => {
     if (selection.ids.size === 0) return;
 
     const items = Array.from(selection.ids).map((id) => ({
@@ -129,14 +197,14 @@ const SuggestionsGrid = () => {
 
     setSelection({ type: "include", ids: new Set() });
     setSuccessMessage(`Successfully updated ${items.length} suggestion(s)`);
-  };
+  }, [selection, targetStatus, batchUpdate]);
 
   return (
     <Stack gap={1.5} sx={{ height: "80vh" }}>
       <SuggestionsFilterBar
         filters={filters}
         setFilters={setFilters}
-        onAddClick={openCreateModal}
+        onAddClick={handleCreate}
       />
 
       <DataGrid
@@ -145,7 +213,7 @@ const SuggestionsGrid = () => {
         getRowId={(row) => row.id}
         loading={loading}
         checkboxSelection
-        disableRowSelectionOnClick
+        disableColumnMenu
         rowSelectionModel={selection}
         onRowSelectionModelChange={(model) => setSelection(model)}
         pageSizeOptions={[25, 50, 100]}
@@ -163,6 +231,28 @@ const SuggestionsGrid = () => {
         }}
       />
 
+      {/* Actions Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+      >
+        <MenuItem onClick={() => menuSuggestion && handleEdit(menuSuggestion)}>
+          <ListItemIcon>
+            <EditIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Edit</ListItemText>
+        </MenuItem>
+      </Menu>
+
       {/* Bulk Update Modal */}
       <React.Suspense fallback={null}>
         {isBulkModalOpen && (
@@ -177,15 +267,20 @@ const SuggestionsGrid = () => {
         )}
       </React.Suspense>
 
-      {/* Create Suggestion Modal */}
+      {/* Create/Edit Suggestion Modal */}
       <React.Suspense fallback={null}>
-        {isCreateModalOpen && (
-          <CreateSuggestionModal
-            open={isCreateModalOpen}
-            onClose={closeCreateModal}
+        {isSuggestionModalOpen && (
+          <SuggestionModal
+            open={isSuggestionModalOpen}
+            onClose={handleModalClose}
             filters={filters}
+            suggestion={selectedSuggestion}
             onSuccess={() => {
-              setSuccessMessage("Suggestion created successfully!");
+              setSuccessMessage(
+                selectedSuggestion
+                  ? "Suggestion updated successfully!"
+                  : "Suggestion created successfully!"
+              );
             }}
           />
         )}

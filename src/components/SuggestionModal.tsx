@@ -22,19 +22,22 @@ import {
   EmployeesDocument,
   SuggestionsDocument,
   CreateSuggestionDocument,
+  UpdateSuggestionDocument,
   Category,
   Priority,
   type Employee,
   type SuggestionsQueryVariables,
+  type Suggestion,
 } from "../gql/generated";
 import { CATEGORIES, PRIORITIES } from "../constants/suggestions";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-interface CreateSuggestionDialogProps {
+interface SuggestionModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess?: () => void;
   filters: SuggestionsQueryVariables;
+  suggestion?: Suggestion | null; // If provided, it's edit mode
 }
 
 interface FormValues {
@@ -45,13 +48,15 @@ interface FormValues {
   notes?: string;
 }
 
-const CreateSuggestionModal = ({
+const SuggestionModal = ({
   open,
   onClose,
   onSuccess,
   filters,
-}: CreateSuggestionDialogProps) => {
+  suggestion,
+}: SuggestionModalProps) => {
   const [error, setError] = useState<string | null>(null);
+  const isEditMode = !!suggestion;
 
   const {
     control,
@@ -72,8 +77,44 @@ const CreateSuggestionModal = ({
   const { data: employeesData, loading: employeesLoading } =
     useQuery(EmployeesDocument);
 
+  // Reset form when suggestion changes (for edit mode)
+  useEffect(() => {
+    if (suggestion && employeesData?.employees) {
+      const employee = employeesData.employees.find(
+        (emp) => emp.id === suggestion.employeeId
+      );
+      reset({
+        employee: employee || null,
+        category: suggestion.category,
+        description: suggestion.description,
+        priority: suggestion.priority,
+        notes: suggestion.notes || "",
+      });
+    }
+  }, [suggestion, employeesData, reset]);
+
   const [createSuggestion, { loading: creating }] = useMutation(
     CreateSuggestionDocument,
+    {
+      refetchQueries: [
+        {
+          query: SuggestionsDocument,
+          variables: filters,
+        },
+      ],
+      awaitRefetchQueries: true,
+      onCompleted: () => {
+        onSuccess?.();
+        handleClose();
+      },
+      onError: (error) => {
+        setError(error.message);
+      },
+    }
+  );
+
+  const [updateSuggestion, { loading: updating }] = useMutation(
+    UpdateSuggestionDocument,
     {
       refetchQueries: [
         {
@@ -98,36 +139,66 @@ const CreateSuggestionModal = ({
     setError(null);
 
     try {
-      await createSuggestion({
-        variables: {
-          input: {
-            employeeId: data.employee.id,
-            category: data.category,
-            description: data.description.trim(),
-            priority: data.priority,
+      if (isEditMode) {
+        await updateSuggestion({
+          variables: {
+            input: {
+              id: suggestion.id,
+              employeeId: data.employee.id,
+              category: data.category,
+              description: data.description.trim(),
+              priority: data.priority,
+              notes: data.notes?.trim() || "",
+            },
           },
-        },
-        optimisticResponse: {
-          createSuggestion: {
-            __typename: "Suggestion",
-            id: "temp-" + Date.now(),
-            employeeId: data.employee.id,
-            employeeName: data.employee.name,
-            source: "ADMIN",
-            category: data.category,
-            description: data.description.trim(),
-            status: "PENDING",
-            priority: data.priority,
-            dateCreated: new Date().toISOString(),
-            dateUpdated: new Date().toISOString(),
-            dateCompleted: null,
-            notes: data.notes || "",
-            createdBy: "Admin",
+          optimisticResponse: {
+            updateSuggestion: {
+              ...suggestion,
+              employeeId: data.employee.id,
+              employeeName: data.employee.name,
+              category: data.category,
+              description: data.description.trim(),
+              priority: data.priority,
+              notes: data.notes?.trim() || "",
+              dateUpdated: new Date().toISOString(),
+            },
           },
-        },
-      });
+        });
+      } else {
+        await createSuggestion({
+          variables: {
+            input: {
+              employeeId: data.employee.id,
+              category: data.category,
+              description: data.description.trim(),
+              priority: data.priority,
+            },
+          },
+          optimisticResponse: {
+            createSuggestion: {
+              __typename: "Suggestion",
+              id: "temp-" + Date.now(),
+              employeeId: data.employee.id,
+              employeeName: data.employee.name,
+              source: "ADMIN",
+              category: data.category,
+              description: data.description.trim(),
+              status: "PENDING",
+              priority: data.priority,
+              dateCreated: new Date().toISOString(),
+              dateUpdated: new Date().toISOString(),
+              dateCompleted: null,
+              notes: data.notes || "",
+              createdBy: "Admin",
+            },
+          },
+        });
+      }
     } catch (err) {
-      console.error("Error creating suggestion:", err);
+      console.error(
+        `Error ${isEditMode ? "updating" : "creating"} suggestion:`,
+        err
+      );
     }
   };
 
@@ -137,15 +208,19 @@ const CreateSuggestionModal = ({
     onClose();
   };
 
+  const loading = creating || updating;
+
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogTitle>
           <Typography variant="h6" component="div">
-            Add New Recommendation
+            {isEditMode ? "Edit Recommendation" : "Add New Recommendation"}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Create a health and safety suggestion for an employee
+            {isEditMode
+              ? "Update the health and safety suggestion"
+              : "Create a health and safety suggestion for an employee"}
           </Typography>
         </DialogTitle>
 
@@ -171,6 +246,7 @@ const CreateSuggestionModal = ({
                   value={value}
                   onChange={(_, newValue) => onChange(newValue)}
                   loading={employeesLoading}
+                  disabled={employeesLoading || isEditMode}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -278,15 +354,21 @@ const CreateSuggestionModal = ({
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={handleClose} disabled={creating}>
+          <Button onClick={handleClose} disabled={loading}>
             Cancel
           </Button>
           <Button
             type="submit"
             variant="contained"
-            disabled={!isValid || creating}
+            disabled={!isValid || loading}
           >
-            {creating ? "Creating..." : "Create Recommendation"}
+            {loading
+              ? isEditMode
+                ? "Updating..."
+                : "Creating..."
+              : isEditMode
+                ? "Update Recommendation"
+                : "Create Recommendation"}
           </Button>
         </DialogActions>
       </form>
@@ -294,4 +376,4 @@ const CreateSuggestionModal = ({
   );
 };
 
-export default CreateSuggestionModal;
+export default SuggestionModal;

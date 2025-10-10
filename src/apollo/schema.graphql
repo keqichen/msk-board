@@ -46,10 +46,20 @@ input NewSuggestionInput {
   priority: Priority! = MEDIUM
 }
 
+input UpdateSuggestionInput {
+  id: ID!
+  employeeId: ID
+  category: Category
+  description: String
+  priority: Priority
+  notes: String
+}
+
 input BatchStatusInput { id: ID!, status: SuggestionStatus! }
 
 type Mutation {
   createSuggestion(input: NewSuggestionInput!): Suggestion!
+  updateSuggestion(input: UpdateSuggestionInput!): Suggestion!
   updateSuggestionStatus(id: ID!, status: SuggestionStatus!): Suggestion!
   batchUpdateSuggestionStatus(items: [BatchStatusInput!]!): [Suggestion!]!
 }

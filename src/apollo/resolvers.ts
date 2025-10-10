@@ -6,6 +6,7 @@ import {
   Priority, 
   RiskLevel,
   type Resolvers,
+  type UpdateSuggestionInput,
 } from '../gql/generated'
 
 const toUpperCase = (value?: string) => (value ?? '').toUpperCase()
@@ -129,6 +130,39 @@ export const resolvers: Resolvers = {
       return suggestion
     },
     
+    updateSuggestion: async (
+      _parent,
+      { input }: { input: UpdateSuggestionInput },
+      context
+    ) => {
+      const { id, ...updates } = input;
+      
+      // Validate that suggestion exists
+      const suggestion = await context.db.suggestion.findUnique({
+        where: { id },
+        include: { employee: true },
+      });
+      
+      if (!suggestion) {
+        throw new Error('Suggestion not found');
+      }
+      
+      // Update the suggestion
+      const updatedSuggestion = await context.db.suggestion.update({
+        where: { id },
+        data: {
+          ...updates,
+          dateUpdated: new Date(),
+        },
+        include: { employee: true },
+      });
+      
+      return {
+        ...updatedSuggestion,
+        employeeName: updatedSuggestion.employee.name,
+      };
+    },
+
     batchUpdateSuggestionStatus: (_parent, { items }) => {
       const idToStatusMap = new Map(items.map(item => [item.id, item.status]))
       const now = new Date().toISOString()

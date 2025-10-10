@@ -57,6 +57,24 @@ mutation CreateSuggestion($input: NewSuggestionInput!) {
   }
 }
 
+mutation UpdateSuggestion($input: UpdateSuggestionInput!) {
+  updateSuggestion(input: $input) {
+    id
+    employeeId
+    employeeName
+    source
+    category
+    description
+    status
+    priority
+    dateCreated
+    dateUpdated
+    dateCompleted
+    notes
+    createdBy
+  }
+}
+
 mutation BatchUpdateSuggestionStatus($items: [BatchStatusInput!]!) {
   batchUpdateSuggestionStatus(items: $items) {
     id

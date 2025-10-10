@@ -42,6 +42,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   batchUpdateSuggestionStatus: Array<Suggestion>;
   createSuggestion: Suggestion;
+  updateSuggestion: Suggestion;
   updateSuggestionStatus: Suggestion;
 };
 
@@ -53,6 +54,11 @@ export type MutationBatchUpdateSuggestionStatusArgs = {
 
 export type MutationCreateSuggestionArgs = {
   input: NewSuggestionInput;
+};
+
+
+export type MutationUpdateSuggestionArgs = {
+  input: UpdateSuggestionInput;
 };
 
 
@@ -130,6 +136,15 @@ export const SuggestionStatus = {
 } as const;
 
 export type SuggestionStatus = typeof SuggestionStatus[keyof typeof SuggestionStatus];
+export type UpdateSuggestionInput = {
+  category?: InputMaybe<Category>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  employeeId?: InputMaybe<Scalars['ID']['input']>;
+  id: Scalars['ID']['input'];
+  notes?: InputMaybe<Scalars['String']['input']>;
+  priority?: InputMaybe<Priority>;
+};
+
 export type EmployeesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -153,6 +168,13 @@ export type CreateSuggestionMutationVariables = Exact<{
 
 
 export type CreateSuggestionMutation = { __typename?: 'Mutation', createSuggestion: { __typename?: 'Suggestion', id: string, employeeId: string, employeeName: string, source: Source, category: Category, description: string, status: SuggestionStatus, priority: Priority, dateCreated: string, dateUpdated: string, dateCompleted?: string | null, notes?: string | null, createdBy?: string | null } };
+
+export type UpdateSuggestionMutationVariables = Exact<{
+  input: UpdateSuggestionInput;
+}>;
+
+
+export type UpdateSuggestionMutation = { __typename?: 'Mutation', updateSuggestion: { __typename?: 'Suggestion', id: string, employeeId: string, employeeName: string, source: Source, category: Category, description: string, status: SuggestionStatus, priority: Priority, dateCreated: string, dateUpdated: string, dateCompleted?: string | null, notes?: string | null, createdBy?: string | null } };
 
 export type BatchUpdateSuggestionStatusMutationVariables = Exact<{
   items: Array<BatchStatusInput> | BatchStatusInput;
@@ -248,6 +270,7 @@ export type ResolversTypes = {
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Suggestion: ResolverTypeWrapper<Suggestion>;
   SuggestionStatus: SuggestionStatus;
+  UpdateSuggestionInput: UpdateSuggestionInput;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -261,6 +284,7 @@ export type ResolversParentTypes = {
   Query: Record<PropertyKey, never>;
   String: Scalars['String']['output'];
   Suggestion: Suggestion;
+  UpdateSuggestionInput: UpdateSuggestionInput;
 };
 
 export type EmployeeResolvers<ContextType = any, ParentType extends ResolversParentTypes['Employee'] = ResolversParentTypes['Employee']> = {
@@ -273,6 +297,7 @@ export type EmployeeResolvers<ContextType = any, ParentType extends ResolversPar
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   batchUpdateSuggestionStatus?: Resolver<Array<ResolversTypes['Suggestion']>, ParentType, ContextType, RequireFields<MutationBatchUpdateSuggestionStatusArgs, 'items'>>;
   createSuggestion?: Resolver<ResolversTypes['Suggestion'], ParentType, ContextType, RequireFields<MutationCreateSuggestionArgs, 'input'>>;
+  updateSuggestion?: Resolver<ResolversTypes['Suggestion'], ParentType, ContextType, RequireFields<MutationUpdateSuggestionArgs, 'input'>>;
   updateSuggestionStatus?: Resolver<ResolversTypes['Suggestion'], ParentType, ContextType, RequireFields<MutationUpdateSuggestionStatusArgs, 'id' | 'status'>>;
 };
 
@@ -309,4 +334,5 @@ export type Resolvers<ContextType = any> = {
 export const EmployeesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Employees"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"employees"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"department"}},{"kind":"Field","name":{"kind":"Name","value":"riskLevel"}}]}}]}}]} as unknown as DocumentNode<EmployeesQuery, EmployeesQueryVariables>;
 export const SuggestionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Suggestions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"q"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"status"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"SuggestionStatus"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"category"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Category"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"priority"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Priority"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"employeeId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"riskLevel"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"RiskLevel"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"suggestions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"q"},"value":{"kind":"Variable","name":{"kind":"Name","value":"q"}}},{"kind":"Argument","name":{"kind":"Name","value":"status"},"value":{"kind":"Variable","name":{"kind":"Name","value":"status"}}},{"kind":"Argument","name":{"kind":"Name","value":"category"},"value":{"kind":"Variable","name":{"kind":"Name","value":"category"}}},{"kind":"Argument","name":{"kind":"Name","value":"priority"},"value":{"kind":"Variable","name":{"kind":"Name","value":"priority"}}},{"kind":"Argument","name":{"kind":"Name","value":"employeeId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"employeeId"}}},{"kind":"Argument","name":{"kind":"Name","value":"riskLevel"},"value":{"kind":"Variable","name":{"kind":"Name","value":"riskLevel"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"employeeId"}},{"kind":"Field","name":{"kind":"Name","value":"employeeName"}},{"kind":"Field","name":{"kind":"Name","value":"source"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"dateCreated"}},{"kind":"Field","name":{"kind":"Name","value":"dateUpdated"}},{"kind":"Field","name":{"kind":"Name","value":"dateCompleted"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"createdBy"}}]}}]}}]} as unknown as DocumentNode<SuggestionsQuery, SuggestionsQueryVariables>;
 export const CreateSuggestionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateSuggestion"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"NewSuggestionInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createSuggestion"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"employeeId"}},{"kind":"Field","name":{"kind":"Name","value":"employeeName"}},{"kind":"Field","name":{"kind":"Name","value":"source"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"dateCreated"}},{"kind":"Field","name":{"kind":"Name","value":"dateUpdated"}},{"kind":"Field","name":{"kind":"Name","value":"dateCompleted"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"createdBy"}}]}}]}}]} as unknown as DocumentNode<CreateSuggestionMutation, CreateSuggestionMutationVariables>;
+export const UpdateSuggestionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSuggestion"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateSuggestionInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateSuggestion"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"employeeId"}},{"kind":"Field","name":{"kind":"Name","value":"employeeName"}},{"kind":"Field","name":{"kind":"Name","value":"source"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"dateCreated"}},{"kind":"Field","name":{"kind":"Name","value":"dateUpdated"}},{"kind":"Field","name":{"kind":"Name","value":"dateCompleted"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"createdBy"}}]}}]}}]} as unknown as DocumentNode<UpdateSuggestionMutation, UpdateSuggestionMutationVariables>;
 export const BatchUpdateSuggestionStatusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"BatchUpdateSuggestionStatus"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"items"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"BatchStatusInput"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"batchUpdateSuggestionStatus"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"items"},"value":{"kind":"Variable","name":{"kind":"Name","value":"items"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"dateUpdated"}},{"kind":"Field","name":{"kind":"Name","value":"dateCompleted"}}]}}]}}]} as unknown as DocumentNode<BatchUpdateSuggestionStatusMutation, BatchUpdateSuggestionStatusMutationVariables>;
