@@ -1,3 +1,12 @@
+query Employees {
+  employees {
+    id
+    name
+    department
+    riskLevel
+  }
+}
+
 query Suggestions(
   $q: String
   $status: SuggestionStatus
@@ -14,6 +23,24 @@ query Suggestions(
     employeeId: $employeeId
     riskLevel: $riskLevel
   ) {
+    id
+    employeeId
+    employeeName
+    source
+    category
+    description
+    status
+    priority
+    dateCreated
+    dateUpdated
+    dateCompleted
+    notes
+    createdBy
+  }
+}
+
+mutation CreateSuggestion($input: NewSuggestionInput!) {
+  createSuggestion(input: $input) {
     id
     employeeId
     employeeName

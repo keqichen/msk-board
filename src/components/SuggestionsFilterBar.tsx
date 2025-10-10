@@ -1,34 +1,18 @@
-import { MenuItem, Select, Stack } from "@mui/material";
-import { SuggestionStatus, Category } from "../gql/generated";
+import { Button, MenuItem, Select, Stack } from "@mui/material";
+import { Add } from "@mui/icons-material";
 import type { SuggestionsQueryVariables } from "../gql/generated";
+import { CATEGORIES, STATUSES } from "../constants/suggestions";
 
-const STATUSES: SuggestionStatus[] = [
-  SuggestionStatus.Pending,
-  SuggestionStatus.InProgress,
-  SuggestionStatus.Completed,
-  SuggestionStatus.Dismissed,
-  SuggestionStatus.Overdue,
-];
-
-const CATEGORIES: Category[] = [
-  Category.Exercise,
-  Category.Equipment,
-  Category.Behavioural,
-  Category.Lifestyle,
-];
-
-interface SuggestionsFilterBarProps {
+type SuggestionsFilterBarProps = {
   filters: SuggestionsQueryVariables;
   setFilters: (partial: Partial<SuggestionsQueryVariables>) => void;
-  targetStatus: SuggestionStatus;
-  setTargetStatus: (status: SuggestionStatus) => void;
-  selectionCount: number;
-  onBatchChange: () => void;
-}
+  onAddClick: () => void;
+};
 
 export default function SuggestionsFilterBar({
   filters,
   setFilters,
+  onAddClick,
 }: SuggestionsFilterBarProps) {
   return (
     <Stack direction="row" alignItems="center" gap={1}>
@@ -59,6 +43,15 @@ export default function SuggestionsFilterBar({
           </MenuItem>
         ))}
       </Select>
+
+      <Button
+        variant="contained"
+        startIcon={<Add />}
+        onClick={onAddClick}
+        sx={{ ml: "auto" }}
+      >
+        Add Suggestion
+      </Button>
     </Stack>
   );
 }

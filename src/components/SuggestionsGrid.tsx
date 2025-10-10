@@ -4,7 +4,7 @@ import {
   type GridColDef,
   type GridRowSelectionModel,
 } from "@mui/x-data-grid";
-import { Chip, Stack } from "@mui/material";
+import { Chip, Stack, Snackbar, Alert } from "@mui/material";
 import { useMutation, useQuery } from "@apollo/client/react";
 
 import {
@@ -14,19 +14,28 @@ import {
 } from "../gql/generated";
 import { useBoardStore } from "../store/useBoardStore";
 import SuggestionsFilterBar from "./SuggestionsFilterBar";
-import { useState } from "react";
 import SuggestionsGridFooter from "./SuggestionsGridFooter";
-import BulkAssignModal from "./BulkAssignModal";
+import { getStatusColor } from "../constants/suggestions";
+
+// Lazy load modals
+const BulkAssignModal = React.lazy(() => import("./BulkAssignModal"));
+const CreateSuggestionModal = React.lazy(
+  () => import("./CreateSuggestionModal")
+);
 
 const SuggestionsGrid = () => {
-  const { filters, setFilters, targetStatus, setTargetStatus } =
-    useBoardStore();
-
-  const [selection, setSelection] = useState<GridRowSelectionModel>({
+  const [bulkUpdateModalOpen, setBulkUpdateModalOpen] = React.useState(false);
+  const [createModalOpen, setCreateModalOpen] = React.useState(false);
+  const [successMessage, setSuccessMessage] = React.useState<string | null>(
+    null
+  );
+  const [selection, setSelection] = React.useState<GridRowSelectionModel>({
     type: "include",
     ids: new Set(),
   });
-  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const { filters, setFilters, targetStatus, setTargetStatus } =
+    useBoardStore();
 
   const { data, loading } = useQuery(SuggestionsDocument, {
     variables: filters,
@@ -60,17 +69,9 @@ const SuggestionsGrid = () => {
       field: "status",
       headerName: "Status",
       width: 150,
-      renderCell: ({ value }) => {
-        const color =
-          value === SuggestionStatus.Completed
-            ? "success"
-            : value === SuggestionStatus.InProgress
-              ? "info"
-              : value === SuggestionStatus.Dismissed
-                ? "default"
-                : "warning";
-        return <Chip label={value} color={color} size="small" />;
-      },
+      renderCell: ({ value }) => (
+        <Chip label={value} color={getStatusColor(value)} size="small" />
+      ),
     },
     {
       field: "dateCreated",
@@ -113,6 +114,7 @@ const SuggestionsGrid = () => {
     });
 
     setSelection({ type: "include", ids: new Set() });
+    setSuccessMessage(`Successfully updated ${items.length} suggestion(s)`);
   };
 
   return (
@@ -120,10 +122,7 @@ const SuggestionsGrid = () => {
       <SuggestionsFilterBar
         filters={filters}
         setFilters={setFilters}
-        targetStatus={targetStatus}
-        setTargetStatus={setTargetStatus}
-        selectionCount={selection.ids.size}
-        onBatchChange={onBatchChange}
+        onAddClick={() => setCreateModalOpen(true)}
       />
 
       <DataGrid
@@ -138,26 +137,62 @@ const SuggestionsGrid = () => {
         pageSizeOptions={[25, 50, 100]}
         initialState={{
           pagination: { paginationModel: { pageSize: 50, page: 0 } },
-          sorting: { sortModel: [{ field: "createdAt", sort: "desc" }] },
+          sorting: { sortModel: [{ field: "dateCreated", sort: "desc" }] },
         }}
         slots={{
           footer: () => (
             <SuggestionsGridFooter
               selectionCount={selection.ids.size}
-              onBulkAssignClick={() => setDialogOpen(true)}
+              onBulkAssignClick={() => setBulkUpdateModalOpen(true)}
             />
           ),
         }}
       />
 
-      <BulkAssignModal
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        selectionCount={selection.ids.size}
-        targetStatus={targetStatus}
-        setTargetStatus={setTargetStatus}
-        onConfirm={onBatchChange}
-      />
+      {/* Bulk Update Modal */}
+      <React.Suspense fallback={null}>
+        {bulkUpdateModalOpen && (
+          <BulkAssignModal
+            open={bulkUpdateModalOpen}
+            onClose={() => setBulkUpdateModalOpen(false)}
+            selectionCount={selection.ids.size}
+            targetStatus={targetStatus}
+            setTargetStatus={setTargetStatus}
+            onConfirm={onBatchChange}
+          />
+        )}
+      </React.Suspense>
+
+      {/* Create Suggestion Modal */}
+      <React.Suspense fallback={null}>
+        {createModalOpen && (
+          <CreateSuggestionModal
+            open={createModalOpen}
+            onClose={() => setCreateModalOpen(false)}
+            filters={filters}
+            onSuccess={() => {
+              setSuccessMessage("Suggestion created successfully!");
+            }}
+          />
+        )}
+      </React.Suspense>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={4000}
+        onClose={() => setSuccessMessage(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSuccessMessage(null)}
+          severity="success"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Stack>
   );
 };

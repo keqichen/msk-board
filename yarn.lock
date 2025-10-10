@@ -2208,6 +2208,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mui/icons-material@npm:^7.3.4":
+  version: 7.3.4
+  resolution: "@mui/icons-material@npm:7.3.4"
+  dependencies:
+    "@babel/runtime": "npm:^7.28.4"
+  peerDependencies:
+    "@mui/material": ^7.3.4
+    "@types/react": ^17.0.0 || ^18.0.0 || ^19.0.0
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 10c0/09c5708f0a96979dafeefdfbaef4950463e987bdc283874831d67ae0ce32cbc946bf408ba5084bd7a8f57af0cb87c3fdfddcf4c21e0946bb5e17c34abfd49d80
+  languageName: node
+  linkType: hard
+
 "@mui/material@npm:^7.3.4":
   version: 7.3.4
   resolution: "@mui/material@npm:7.3.4"
@@ -5103,6 +5119,7 @@ __metadata:
     "@graphql-codegen/typescript-resolvers": "npm:^5.1.0"
     "@graphql-tools/schema": "npm:^10.0.25"
     "@graphql-typed-document-node/core": "npm:^3.2.0"
+    "@mui/icons-material": "npm:^7.3.4"
     "@mui/material": "npm:^7.3.4"
     "@mui/x-data-grid": "npm:^8.14.0"
     "@types/node": "npm:^24.6.0"
@@ -5116,6 +5133,7 @@ __metadata:
     graphql: "npm:^16.11.0"
     react: "npm:^19.1.1"
     react-dom: "npm:^19.1.1"
+    react-hook-form: "npm:^7.64.0"
     rxjs: "npm:^7.8.2"
     typescript: "npm:~5.9.3"
     typescript-eslint: "npm:^8.45.0"
@@ -5586,6 +5604,15 @@ __metadata:
   peerDependencies:
     react: ^19.2.0
   checksum: 10c0/fa2cae05248d01288e91523b590ce4e7635b1e13f1344e225f850d722a8da037bf0782f63b1c1d46353334e0c696909b82e582f8cad607948fde6f7646cc18d9
+  languageName: node
+  linkType: hard
+
+"react-hook-form@npm:^7.64.0":
+  version: 7.64.0
+  resolution: "react-hook-form@npm:7.64.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17 || ^18 || ^19
+  checksum: 10c0/d21e7c06cb5dfe8f82724350096d6d85fd1a84b2ae1a9d1fb8c084212ea9f7a7483bd9b90b5a5ab4a4ccd744c96c840718df68d6ecf31beedf4e9a33fc9a94c4
   languageName: node
   linkType: hard
 

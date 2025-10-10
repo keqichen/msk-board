@@ -1,0 +1,297 @@
+import * as React from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Autocomplete,
+  Stack,
+  Alert,
+  Typography,
+  FormHelperText,
+} from "@mui/material";
+import { useQuery, useMutation } from "@apollo/client/react";
+import { useForm, Controller } from "react-hook-form";
+import {
+  EmployeesDocument,
+  SuggestionsDocument,
+  CreateSuggestionDocument,
+  Category,
+  Priority,
+  type Employee,
+  type SuggestionsQueryVariables,
+} from "../gql/generated";
+import { CATEGORIES, PRIORITIES } from "../constants/suggestions";
+import { useState } from "react";
+
+interface CreateSuggestionDialogProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess?: () => void;
+  filters: SuggestionsQueryVariables;
+}
+
+interface FormValues {
+  employee: Employee | null;
+  category: Category;
+  description: string;
+  priority: Priority;
+  notes?: string;
+}
+
+const CreateSuggestionModal = ({
+  open,
+  onClose,
+  onSuccess,
+  filters,
+}: CreateSuggestionDialogProps) => {
+  const [error, setError] = useState<string | null>(null);
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<FormValues>({
+    defaultValues: {
+      employee: null,
+      category: Category.Exercise,
+      description: "",
+      priority: Priority.Medium,
+      notes: "",
+    },
+    mode: "onChange",
+  });
+
+  const { data: employeesData, loading: employeesLoading } =
+    useQuery(EmployeesDocument);
+
+  const [createSuggestion, { loading: creating }] = useMutation(
+    CreateSuggestionDocument,
+    {
+      refetchQueries: [
+        {
+          query: SuggestionsDocument,
+          variables: filters,
+        },
+      ],
+      awaitRefetchQueries: true,
+      onCompleted: () => {
+        onSuccess?.();
+        handleClose();
+      },
+      onError: (error) => {
+        setError(error.message);
+      },
+    }
+  );
+
+  const onSubmit = async (data: FormValues) => {
+    if (!data.employee) return;
+
+    setError(null);
+
+    try {
+      await createSuggestion({
+        variables: {
+          input: {
+            employeeId: data.employee.id,
+            category: data.category,
+            description: data.description.trim(),
+            priority: data.priority,
+          },
+        },
+        optimisticResponse: {
+          createSuggestion: {
+            __typename: "Suggestion",
+            id: "temp-" + Date.now(),
+            employeeId: data.employee.id,
+            employeeName: data.employee.name,
+            source: "ADMIN",
+            category: data.category,
+            description: data.description.trim(),
+            status: "PENDING",
+            priority: data.priority,
+            dateCreated: new Date().toISOString(),
+            dateUpdated: new Date().toISOString(),
+            dateCompleted: null,
+            notes: data.notes || "",
+            createdBy: "Admin",
+          },
+        },
+      });
+    } catch (err) {
+      console.error("Error creating suggestion:", err);
+    }
+  };
+
+  const handleClose = () => {
+    reset();
+    setError(null);
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <DialogTitle>
+          <Typography variant="h6" component="div">
+            Add New Recommendation
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Create a health and safety suggestion for an employee
+          </Typography>
+        </DialogTitle>
+
+        <DialogContent>
+          <Stack spacing={3} sx={{ mt: 1 }}>
+            {error && (
+              <Alert severity="error" onClose={() => setError(null)}>
+                {error}
+              </Alert>
+            )}
+
+            {/* Employee Selection */}
+            <Controller
+              name="employee"
+              control={control}
+              rules={{ required: "Employee is required" }}
+              render={({ field: { onChange, value } }) => (
+                <Autocomplete
+                  options={employeesData?.employees ?? []}
+                  getOptionLabel={(option) =>
+                    `${option.name}${option.department ? ` (${option.department})` : ""}`
+                  }
+                  value={value}
+                  onChange={(_, newValue) => onChange(newValue)}
+                  loading={employeesLoading}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Employee"
+                      required
+                      placeholder="Search employee..."
+                      error={!!errors.employee}
+                      helperText={errors.employee?.message}
+                    />
+                  )}
+                />
+              )}
+            />
+
+            {/* Category Selection */}
+            <Controller
+              name="category"
+              control={control}
+              rules={{ required: "Category is required" }}
+              render={({ field }) => (
+                <FormControl fullWidth required error={!!errors.category}>
+                  <InputLabel>Category</InputLabel>
+                  <Select {...field} label="Category">
+                    {CATEGORIES.map((cat) => (
+                      <MenuItem key={cat} value={cat}>
+                        {cat}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.category && (
+                    <FormHelperText>{errors.category.message}</FormHelperText>
+                  )}
+                </FormControl>
+              )}
+            />
+
+            {/* Description */}
+            <Controller
+              name="description"
+              control={control}
+              rules={{
+                required: "Description is required",
+                minLength: {
+                  value: 10,
+                  message: "Description must be at least 10 characters",
+                },
+                maxLength: {
+                  value: 500,
+                  message: "Description must be less than 500 characters",
+                },
+              }}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Description"
+                  multiline
+                  rows={4}
+                  required
+                  fullWidth
+                  error={!!errors.description}
+                  helperText={errors.description?.message}
+                  placeholder="Describe the recommendation..."
+                />
+              )}
+            />
+
+            {/* Priority */}
+            <Controller
+              name="priority"
+              control={control}
+              rules={{ required: "Priority is required" }}
+              render={({ field }) => (
+                <FormControl fullWidth required error={!!errors.priority}>
+                  <InputLabel>Priority</InputLabel>
+                  <Select {...field} label="Priority">
+                    {PRIORITIES.map((pri) => (
+                      <MenuItem key={pri} value={pri}>
+                        {pri}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.priority && (
+                    <FormHelperText>{errors.priority.message}</FormHelperText>
+                  )}
+                </FormControl>
+              )}
+            />
+
+            {/* Notes (Optional) */}
+            <Controller
+              name="notes"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Notes (Optional)"
+                  multiline
+                  rows={2}
+                  fullWidth
+                  placeholder="Additional notes..."
+                />
+              )}
+            />
+          </Stack>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleClose} disabled={creating}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={!isValid || creating}
+          >
+            {creating ? "Creating..." : "Create Recommendation"}
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
+  );
+};
+
+export default CreateSuggestionModal;
