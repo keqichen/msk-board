@@ -16,6 +16,8 @@ import { useBoardStore } from "../store/useBoardStore";
 import SuggestionsFilterBar from "./SuggestionsFilterBar";
 import SuggestionsGridFooter from "./SuggestionsGridFooter";
 import { getStatusColor } from "../constants/suggestions";
+import useOpen from "../hooks/useOpen";
+import { useState } from "react";
 
 // Lazy load modals
 const BulkAssignModal = React.lazy(() => import("./BulkAssignModal"));
@@ -24,18 +26,30 @@ const CreateSuggestionModal = React.lazy(
 );
 
 const SuggestionsGrid = () => {
-  const [bulkUpdateModalOpen, setBulkUpdateModalOpen] = React.useState(false);
-  const [createModalOpen, setCreateModalOpen] = React.useState(false);
-  const [successMessage, setSuccessMessage] = React.useState<string | null>(
-    null
-  );
-  const [selection, setSelection] = React.useState<GridRowSelectionModel>({
+  const {
+    isVisible: isBulkModalOpen,
+    open: openBulkModal,
+    close: closeBulkModal,
+  } = useOpen();
+
+  const {
+    isVisible: isCreateModalOpen,
+    open: openCreateModal,
+    close: closeCreateModal,
+  } = useOpen();
+
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const [selection, setSelection] = useState<GridRowSelectionModel>({
     type: "include",
     ids: new Set(),
   });
 
-  const { filters, setFilters, targetStatus, setTargetStatus } =
-    useBoardStore();
+  const [targetStatus, setTargetStatus] = useState<SuggestionStatus>(
+    SuggestionStatus.InProgress
+  );
+
+  const { filters, setFilters } = useBoardStore();
 
   const { data, loading } = useQuery(SuggestionsDocument, {
     variables: filters,
@@ -81,7 +95,7 @@ const SuggestionsGrid = () => {
     },
   ];
 
-  const onBatchChange = async () => {
+  const handleBatchUpdate = async () => {
     if (selection.ids.size === 0) return;
 
     const items = Array.from(selection.ids).map((id) => ({
@@ -122,7 +136,7 @@ const SuggestionsGrid = () => {
       <SuggestionsFilterBar
         filters={filters}
         setFilters={setFilters}
-        onAddClick={() => setCreateModalOpen(true)}
+        onAddClick={openCreateModal}
       />
 
       <DataGrid
@@ -143,7 +157,7 @@ const SuggestionsGrid = () => {
           footer: () => (
             <SuggestionsGridFooter
               selectionCount={selection.ids.size}
-              onBulkAssignClick={() => setBulkUpdateModalOpen(true)}
+              onBulkAssignClick={openBulkModal}
             />
           ),
         }}
@@ -151,24 +165,24 @@ const SuggestionsGrid = () => {
 
       {/* Bulk Update Modal */}
       <React.Suspense fallback={null}>
-        {bulkUpdateModalOpen && (
+        {isBulkModalOpen && (
           <BulkAssignModal
-            open={bulkUpdateModalOpen}
-            onClose={() => setBulkUpdateModalOpen(false)}
+            open={isBulkModalOpen}
+            onClose={closeBulkModal}
             selectionCount={selection.ids.size}
             targetStatus={targetStatus}
             setTargetStatus={setTargetStatus}
-            onConfirm={onBatchChange}
+            onConfirm={handleBatchUpdate}
           />
         )}
       </React.Suspense>
 
       {/* Create Suggestion Modal */}
       <React.Suspense fallback={null}>
-        {createModalOpen && (
+        {isCreateModalOpen && (
           <CreateSuggestionModal
-            open={createModalOpen}
-            onClose={() => setCreateModalOpen(false)}
+            open={isCreateModalOpen}
+            onClose={closeCreateModal}
             filters={filters}
             onSuccess={() => {
               setSuccessMessage("Suggestion created successfully!");
