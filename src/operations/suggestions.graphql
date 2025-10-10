@@ -1,0 +1,40 @@
+query Suggestions(
+  $q: String
+  $status: SuggestionStatus
+  $category: Category
+  $priority: Priority
+  $employeeId: ID
+  $riskLevel: RiskLevel
+) {
+  suggestions(
+    q: $q
+    status: $status
+    category: $category
+    priority: $priority
+    employeeId: $employeeId
+    riskLevel: $riskLevel
+  ) {
+    id
+    employeeId
+    employeeName
+    source
+    category
+    description
+    status
+    priority
+    dateCreated
+    dateUpdated
+    dateCompleted
+    notes
+    createdBy
+  }
+}
+
+mutation BatchUpdateSuggestionStatus($items: [BatchStatusInput!]!) {
+  batchUpdateSuggestionStatus(items: $items) {
+    id
+    status
+    dateUpdated
+    dateCompleted
+  }
+}

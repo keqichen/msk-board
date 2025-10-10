@@ -1,0 +1,55 @@
+enum SuggestionStatus { PENDING IN_PROGRESS COMPLETED DISMISSED OVERDUE }
+enum Category { EQUIPMENT EXERCISE BEHAVIOURAL LIFESTYLE }
+enum Source { VIDA ADMIN }
+enum Priority { HIGH MEDIUM LOW }
+enum RiskLevel { HIGH MEDIUM LOW }
+
+type Employee {
+  id: ID!
+  name: String!
+  department: String
+  riskLevel: RiskLevel
+}
+
+type Suggestion {
+  id: ID!
+  employeeId: ID!
+  employeeName: String!    
+  source: Source!
+  category: Category!
+  description: String!
+  status: SuggestionStatus!
+  priority: Priority!
+  dateCreated: String!
+  dateUpdated: String!
+  dateCompleted: String
+  notes: String
+  createdBy: String
+}
+
+type Query {
+  employees: [Employee!]!
+  suggestions(
+    q: String
+    status: SuggestionStatus
+    category: Category
+    priority: Priority
+    employeeId: ID
+    riskLevel: RiskLevel
+  ): [Suggestion!]!
+}
+
+input NewSuggestionInput {
+  employeeId: ID!
+  category: Category!
+  description: String!
+  priority: Priority! = MEDIUM
+}
+
+input BatchStatusInput { id: ID!, status: SuggestionStatus! }
+
+type Mutation {
+  createSuggestion(input: NewSuggestionInput!): Suggestion!
+  updateSuggestionStatus(id: ID!, status: SuggestionStatus!): Suggestion!
+  batchUpdateSuggestionStatus(items: [BatchStatusInput!]!): [Suggestion!]!
+}
