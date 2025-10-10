@@ -1,6 +1,7 @@
 import * as React from "react";
 import {
   DataGrid,
+  gridClasses,
   type GridColDef,
   type GridRowSelectionModel,
 } from "@mui/x-data-grid";
@@ -220,6 +221,15 @@ const SuggestionsGrid = () => {
         initialState={{
           pagination: { paginationModel: { pageSize: 50, page: 0 } },
           sorting: { sortModel: [{ field: "dateCreated", sort: "desc" }] },
+        }}
+        sx={{
+          [`& .${gridClasses.columnHeader}, & .${gridClasses.cell}`]: {
+            outline: "transparent",
+          },
+          [`& .${gridClasses.columnHeader}:focus-within, & .${gridClasses.cell}:focus-within`]:
+            {
+              outline: "none",
+            },
         }}
         slots={{
           footer: () => (
