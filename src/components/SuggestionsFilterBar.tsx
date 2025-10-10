@@ -1,4 +1,4 @@
-import { Button, MenuItem, Select, Stack } from "@mui/material";
+import { MenuItem, Select, Stack } from "@mui/material";
 import { SuggestionStatus, Category } from "../gql/generated";
 import type { SuggestionsQueryVariables } from "../gql/generated";
 
@@ -29,10 +29,6 @@ interface SuggestionsFilterBarProps {
 export default function SuggestionsFilterBar({
   filters,
   setFilters,
-  targetStatus,
-  setTargetStatus,
-  selectionCount,
-  onBatchChange,
 }: SuggestionsFilterBarProps) {
   return (
     <Stack direction="row" alignItems="center" gap={1}>
@@ -63,28 +59,6 @@ export default function SuggestionsFilterBar({
           </MenuItem>
         ))}
       </Select>
-
-      <Stack direction="row" gap={1} sx={{ ml: "auto" }}>
-        <Select
-          size="small"
-          value={targetStatus}
-          onChange={(e) => setTargetStatus(e.target.value as SuggestionStatus)}
-        >
-          {STATUSES.map((status) => (
-            <MenuItem key={status} value={status}>
-              {status}
-            </MenuItem>
-          ))}
-        </Select>
-
-        <Button
-          variant="contained"
-          disabled={selectionCount === 0}
-          onClick={onBatchChange}
-        >
-          Set {targetStatus} ({selectionCount})
-        </Button>
-      </Stack>
     </Stack>
   );
 }

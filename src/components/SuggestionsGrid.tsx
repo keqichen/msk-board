@@ -1,5 +1,9 @@
 import * as React from "react";
-import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  type GridColDef,
+  type GridRowSelectionModel,
+} from "@mui/x-data-grid";
 import { Chip, Stack } from "@mui/material";
 import { useMutation, useQuery } from "@apollo/client/react";
 
@@ -10,16 +14,19 @@ import {
 } from "../gql/generated";
 import { useBoardStore } from "../store/useBoardStore";
 import SuggestionsFilterBar from "./SuggestionsFilterBar";
+import { useState } from "react";
+import SuggestionsGridFooter from "./SuggestionsGridFooter";
+import BulkAssignModal from "./BulkAssignModal";
 
-export default function SuggestionsGrid() {
-  const {
-    filters,
-    setFilters,
-    selection,
-    setSelection,
-    targetStatus,
-    setTargetStatus,
-  } = useBoardStore();
+const SuggestionsGrid = () => {
+  const { filters, setFilters, targetStatus, setTargetStatus } =
+    useBoardStore();
+
+  const [selection, setSelection] = useState<GridRowSelectionModel>({
+    type: "include",
+    ids: new Set(),
+  });
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data, loading } = useQuery(SuggestionsDocument, {
     variables: filters,
@@ -29,7 +36,12 @@ export default function SuggestionsGrid() {
 
   const columns: GridColDef[] = [
     { field: "employeeName", headerName: "Employee", flex: 1, minWidth: 180 },
-    { field: "title", headerName: "Suggestion", flex: 1.4, minWidth: 220 },
+    {
+      field: "description",
+      headerName: "Suggestion",
+      flex: 1.4,
+      minWidth: 220,
+    },
     {
       field: "category",
       headerName: "Category",
@@ -61,18 +73,18 @@ export default function SuggestionsGrid() {
       },
     },
     {
-      field: "createdAt",
+      field: "dateCreated",
       headerName: "Created",
-      type: "dateTime",
+      type: "string",
       width: 170,
     },
   ];
 
   const onBatchChange = async () => {
-    if (!selection.length) return;
+    if (selection.ids.size === 0) return;
 
-    const items = selection.map((id) => ({
-      id,
+    const items = Array.from(selection.ids).map((id) => ({
+      id: String(id),
       status: targetStatus,
     }));
 
@@ -100,7 +112,7 @@ export default function SuggestionsGrid() {
       },
     });
 
-    setSelection([]);
+    setSelection({ type: "include", ids: new Set() });
   };
 
   return (
@@ -110,7 +122,7 @@ export default function SuggestionsGrid() {
         setFilters={setFilters}
         targetStatus={targetStatus}
         setTargetStatus={setTargetStatus}
-        selectionCount={selection.length}
+        selectionCount={selection.ids.size}
         onBatchChange={onBatchChange}
       />
 
@@ -121,14 +133,33 @@ export default function SuggestionsGrid() {
         loading={loading}
         checkboxSelection
         disableRowSelectionOnClick
-        // rowSelectionModel={selection}
-        // onRowSelectionModelChange={(model) => setSelection(model as string[])}
+        rowSelectionModel={selection}
+        onRowSelectionModelChange={(model) => setSelection(model)}
         pageSizeOptions={[25, 50, 100]}
         initialState={{
           pagination: { paginationModel: { pageSize: 50, page: 0 } },
           sorting: { sortModel: [{ field: "createdAt", sort: "desc" }] },
         }}
+        slots={{
+          footer: () => (
+            <SuggestionsGridFooter
+              selectionCount={selection.ids.size}
+              onBulkAssignClick={() => setDialogOpen(true)}
+            />
+          ),
+        }}
+      />
+
+      <BulkAssignModal
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        selectionCount={selection.ids.size}
+        targetStatus={targetStatus}
+        setTargetStatus={setTargetStatus}
+        onConfirm={onBatchChange}
       />
     </Stack>
   );
-}
+};
+
+export default SuggestionsGrid;
