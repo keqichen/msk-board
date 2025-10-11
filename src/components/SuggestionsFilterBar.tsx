@@ -48,7 +48,7 @@ export default function SuggestionsFilterBar({
         variant="contained"
         startIcon={<Add />}
         onClick={onAddClick}
-        sx={{ ml: "auto" }}
+        sx={{ ml: "auto", textTransform: "none", minWidth: "180px" }}
       >
         Add Suggestion
       </Button>

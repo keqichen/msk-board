@@ -18,6 +18,7 @@ const SuggestionsGridFooter = ({
           size="small"
           disabled={!selectionCount}
           onClick={onBulkAssignClick}
+          sx={{ textTransform: "none" }}
         >
           Bulk update ({selectionCount})
         </Button>
