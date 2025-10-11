@@ -50,8 +50,8 @@ import {
 } from "../constants/suggestionsColumns";
 
 // Lazy load modals
-const BulkAssignModal = React.lazy(() => import("./BulkAssignModal"));
-const SuggestionModal = React.lazy(() => import("./SuggestionModal"));
+const BulkAssignModal = React.lazy(() => import("./Modals/BulkAssignModal"));
+const SuggestionModal = React.lazy(() => import("./Modals/SuggestionModal"));
 
 const SuggestionsGrid = () => {
   const theme = useTheme();

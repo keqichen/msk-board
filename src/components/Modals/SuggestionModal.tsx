@@ -28,9 +28,10 @@ import {
   type Employee,
   type SuggestionsQueryVariables,
   type Suggestion,
-} from "../gql/generated";
-import { CATEGORIES, PRIORITIES } from "../constants/suggestions";
+} from "../../gql/generated";
+import { CATEGORIES, PRIORITIES } from "../../constants/suggestions";
 import { useState, useEffect } from "react";
+import { toTitleCase } from "../../utils/stringUtils";
 
 interface SuggestionModalProps {
   open: boolean;
@@ -270,9 +271,9 @@ const SuggestionModal = ({
                 <FormControl fullWidth required error={!!errors.category}>
                   <InputLabel>Category</InputLabel>
                   <Select {...field} label="Category">
-                    {CATEGORIES.map((cat) => (
-                      <MenuItem key={cat} value={cat}>
-                        {cat}
+                    {CATEGORIES.map((category) => (
+                      <MenuItem key={category} value={category}>
+                        {toTitleCase(category)}
                       </MenuItem>
                     ))}
                   </Select>
@@ -322,9 +323,9 @@ const SuggestionModal = ({
                 <FormControl fullWidth required error={!!errors.priority}>
                   <InputLabel>Priority</InputLabel>
                   <Select {...field} label="Priority">
-                    {PRIORITIES.map((pri) => (
-                      <MenuItem key={pri} value={pri}>
-                        {pri}
+                    {PRIORITIES.map((priority) => (
+                      <MenuItem key={priority} value={priority}>
+                        {toTitleCase(priority)}
                       </MenuItem>
                     ))}
                   </Select>

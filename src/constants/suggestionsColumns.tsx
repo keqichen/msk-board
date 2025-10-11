@@ -3,6 +3,7 @@ import { Chip } from "@mui/material";
 import { type GridColDef, type GridRenderCellParams } from "@mui/x-data-grid";
 import { getStatusColor } from "./suggestions";
 import type { Suggestion } from "../gql/generated";
+import { toTitleCase } from "../utils/stringUtils";
 
 export interface ColumnVisibility {
   employeeName: boolean;
@@ -60,7 +61,7 @@ export const suggestionsColumns = [
     flex: 0.8,
     minWidth: 120,
     renderCell: ({ value }: GridRenderCellParams<Suggestion>) => (
-      <Chip label={value} size="small" />
+      <Chip label={toTitleCase(value)} size="small" />
     ),
   },
   {
@@ -69,7 +70,7 @@ export const suggestionsColumns = [
     flex: 0.6,
     minWidth: 100,
     renderCell: ({ value }: GridRenderCellParams<Suggestion>) => (
-      <Chip label={value} variant="outlined" size="small" />
+      <Chip label={toTitleCase(value)} variant="outlined" size="small" />
     ),
   },
   {
@@ -78,7 +79,11 @@ export const suggestionsColumns = [
     flex: 0.8,
     minWidth: 130,
     renderCell: ({ value }: GridRenderCellParams<Suggestion>) => (
-      <Chip label={value} color={getStatusColor(value)} size="small" />
+      <Chip
+        label={toTitleCase(value)}
+        color={getStatusColor(value)}
+        size="small"
+      />
     ),
   },
   {
@@ -87,6 +92,8 @@ export const suggestionsColumns = [
     type: "string" as const,
     flex: 0.6,
     minWidth: 100,
+    renderCell: ({ value }: GridRenderCellParams<Suggestion>) =>
+      toTitleCase(value || ""),
   },
   {
     field: "dateCreated",

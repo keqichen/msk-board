@@ -2,6 +2,7 @@ import { Button, MenuItem, Select, Stack } from "@mui/material";
 import { Add } from "@mui/icons-material";
 import type { SuggestionsQueryVariables } from "../gql/generated";
 import { CATEGORIES, STATUSES } from "../constants/suggestions";
+import { toTitleCase } from "../utils/stringUtils";
 
 type SuggestionsFilterBarProps = {
   filters: SuggestionsQueryVariables;
@@ -25,7 +26,7 @@ export default function SuggestionsFilterBar({
         <MenuItem value="">All Statuses</MenuItem>
         {STATUSES.map((status) => (
           <MenuItem key={status} value={status}>
-            {status}
+            {toTitleCase(status)}
           </MenuItem>
         ))}
       </Select>
@@ -39,7 +40,7 @@ export default function SuggestionsFilterBar({
         <MenuItem value="">All Categories</MenuItem>
         {CATEGORIES.map((category) => (
           <MenuItem key={category} value={category}>
-            {category}
+            {toTitleCase(category)}
           </MenuItem>
         ))}
       </Select>

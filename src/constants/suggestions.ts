@@ -33,9 +33,13 @@ export const getStatusColor = (status: SuggestionStatus) => {
       return "success";
     case SuggestionStatus.InProgress:
       return "info";
+    case SuggestionStatus.Overdue:
+      return "error";
     case SuggestionStatus.Dismissed:
       return "default";
-    default:
+    case SuggestionStatus.Pending:
       return "warning";
+    default:
+      return "default";
   }
 };

@@ -10,7 +10,8 @@ import {
   InputLabel,
   Typography,
 } from "@mui/material";
-import { SuggestionStatus } from "../gql/generated";
+import { SuggestionStatus } from "../../gql/generated";
+import { toTitleCase } from "../../utils/stringUtils";
 
 const STATUSES: SuggestionStatus[] = [
   SuggestionStatus.Pending,
@@ -62,7 +63,7 @@ const BulkAssignModal = ({
           >
             {STATUSES.map((status) => (
               <MenuItem key={status} value={status}>
-                {status}
+                {toTitleCase(status)}
               </MenuItem>
             ))}
           </Select>
