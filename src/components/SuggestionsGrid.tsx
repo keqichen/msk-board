@@ -285,10 +285,7 @@ const SuggestionsGrid = () => {
             }}
             slots={{
               footer: () => (
-                <SuggestionsGridFooter
-                  selectionCount={selection.ids.size}
-                  onBulkAssignClick={openBulkModal}
-                />
+                <SuggestionsGridFooter onBulkAssignClick={openBulkModal} />
               ),
             }}
           />

@@ -1,26 +1,30 @@
 import { Button, Box } from "@mui/material";
 import { GridFooter, GridFooterContainer } from "@mui/x-data-grid";
-
-interface SuggestionsGridFooterProps {
-  selectionCount: number;
+import {
+  useGridApiContext,
+  useGridSelector,
+  gridRowSelectionIdsSelector,
+} from "@mui/x-data-grid-pro";
+type SuggestionsGridFooterProps = {
   onBulkAssignClick: () => void;
-}
+};
 
 const SuggestionsGridFooter = ({
-  selectionCount,
   onBulkAssignClick,
 }: SuggestionsGridFooterProps) => {
+  const apiRef = useGridApiContext();
+  const selectedIds = useGridSelector(apiRef, gridRowSelectionIdsSelector); // GridRowId[]
   return (
     <GridFooterContainer>
       <Box sx={{ display: "flex", alignItems: "center", gap: 2, px: 2 }}>
         <Button
           variant="contained"
           size="small"
-          disabled={!selectionCount}
+          disabled={!selectedIds.size}
           onClick={onBulkAssignClick}
           sx={{ textTransform: "none" }}
         >
-          Bulk update ({selectionCount})
+          Bulk update ({selectedIds.size})
         </Button>
       </Box>
       <GridFooter />
