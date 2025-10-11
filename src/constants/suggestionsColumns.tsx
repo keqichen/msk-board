@@ -89,7 +89,6 @@ export const suggestionsColumns = [
   {
     field: "priority",
     headerName: "Priority",
-    type: "string" as const,
     flex: 0.6,
     minWidth: 100,
     renderCell: ({ value }: GridRenderCellParams<Suggestion>) =>

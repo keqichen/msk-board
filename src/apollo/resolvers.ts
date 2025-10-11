@@ -59,7 +59,7 @@ export const resolvers: Resolvers = {
         
         // Filter by priority
         if (args.priority && suggestion.priority !== args.priority) return false
-        
+
         // Filter by employee ID
         if (args.employeeId && suggestion.employeeId !== args.employeeId) return false
         

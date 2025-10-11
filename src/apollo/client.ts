@@ -11,7 +11,7 @@ export const apolloClient = new ApolloClient({
     typePolicies: {
       Suggestion: { keyFields: ['id'] },
       Query: { fields: {
-        suggestions: { keyArgs: ['q','status','category','employeeId'] }
+        suggestions: { keyArgs: ['q','status','category','employeeId','priority'] }
       } }
     },
   }),

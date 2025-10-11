@@ -15,8 +15,6 @@ import {
   ListItemIcon,
   ListItemText,
   Box,
-  useMediaQuery,
-  useTheme,
   Button,
   Popover,
   FormControlLabel,
@@ -48,16 +46,14 @@ import {
   type ColumnVisibility,
   suggestionsColumns,
 } from "../constants/suggestionsColumns";
+import { useResponsive } from "../hooks/useResponsive";
 
 // Lazy load modals
 const BulkAssignModal = React.lazy(() => import("./Modals/BulkAssignModal"));
 const SuggestionModal = React.lazy(() => import("./Modals/SuggestionModal"));
 
 const SuggestionsGrid = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
-  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
+  const { isSmallScreen, isMediumScreen, isLargeScreen } = useResponsive();
 
   const {
     isVisible: isBulkModalOpen,
@@ -172,14 +168,20 @@ const SuggestionsGrid = () => {
       ...filterVisibleColumns(
         suggestionsColumns,
         columnVisibility,
-        isMobile,
-        isTablet,
-        isDesktop
+        isSmallScreen,
+        isMediumScreen,
+        isLargeScreen
       ),
       // Always show actions column
       columnsWithActions[columnsWithActions.length - 1],
     ],
-    [columnsWithActions, columnVisibility, isMobile, isTablet, isDesktop]
+    [
+      columnVisibility,
+      isSmallScreen,
+      isMediumScreen,
+      isLargeScreen,
+      columnsWithActions,
+    ]
   );
 
   const handleBatchUpdate = useCallback(async () => {
@@ -239,7 +241,7 @@ const SuggestionsGrid = () => {
             />
           </Box>
 
-          {!isMobile && (
+          {!isSmallScreen && (
             <Button
               variant="outlined"
               startIcon={<ViewColumnIcon />}
