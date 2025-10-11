@@ -6,7 +6,7 @@ import Container from "@mui/material/Container";
 export default function App() {
   return (
     <ApolloProvider client={apolloClient}>
-      <Container maxWidth="lg" sx={{ py: 3 }}>
+      <Container maxWidth="lg">
         <h1>MSK Suggestion Board</h1>
         <SuggestionsGrid />
       </Container>

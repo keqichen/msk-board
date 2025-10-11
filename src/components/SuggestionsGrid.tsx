@@ -1,12 +1,11 @@
 import * as React from "react";
 import {
-  DataGrid,
   gridClasses,
-  type GridColDef,
+  type GridRenderCellParams,
   type GridRowSelectionModel,
 } from "@mui/x-data-grid";
+import { DataGridPro } from "@mui/x-data-grid-pro";
 import {
-  Chip,
   Stack,
   Snackbar,
   Alert,
@@ -15,10 +14,20 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
+  Box,
+  useMediaQuery,
+  useTheme,
+  Button,
+  Popover,
+  FormControlLabel,
+  Checkbox,
+  Typography,
+  Divider,
 } from "@mui/material";
 import {
   MoreHoriz as MoreHorizIcon,
   Edit as EditIcon,
+  ViewColumn as ViewColumnIcon,
 } from "@mui/icons-material";
 import { useMutation, useQuery } from "@apollo/client/react";
 
@@ -31,15 +40,25 @@ import {
 import { useBoardStore } from "../store/useBoardStore";
 import SuggestionsFilterBar from "./SuggestionsFilterBar";
 import SuggestionsGridFooter from "./SuggestionsGridFooter";
-import { getStatusColor } from "../constants/suggestions";
 import useOpen from "../hooks/useOpen";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
+import {
+  filterVisibleColumns,
+  COLUMN_LABELS,
+  type ColumnVisibility,
+  suggestionsColumns,
+} from "../constants/suggestionsColumns";
 
 // Lazy load modals
 const BulkAssignModal = React.lazy(() => import("./BulkAssignModal"));
 const SuggestionModal = React.lazy(() => import("./SuggestionModal"));
 
 const SuggestionsGrid = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
+  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
+
   const {
     isVisible: isBulkModalOpen,
     open: openBulkModal,
@@ -57,6 +76,9 @@ const SuggestionsGrid = () => {
     useState<Suggestion | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [menuSuggestion, setMenuSuggestion] = useState<Suggestion | null>(null);
+  const [columnMenuAnchor, setColumnMenuAnchor] = useState<null | HTMLElement>(
+    null
+  );
 
   const [selection, setSelection] = useState<GridRowSelectionModel>({
     type: "include",
@@ -67,7 +89,9 @@ const SuggestionsGrid = () => {
     SuggestionStatus.InProgress
   );
 
-  const { filters, setFilters } = useBoardStore();
+  // Get state from Zustand store
+  const { filters, setFilters, columnVisibility, toggleColumn } =
+    useBoardStore();
 
   const { data, loading } = useQuery(SuggestionsDocument, {
     variables: filters,
@@ -109,60 +133,54 @@ const SuggestionsGrid = () => {
     setMenuSuggestion(null);
   }, []);
 
-  const columns: GridColDef[] = [
-    { field: "employeeName", headerName: "Employee", flex: 1, minWidth: 180 },
-    {
-      field: "description",
-      headerName: "Suggestion",
-      flex: 1.4,
-      minWidth: 220,
-    },
-    {
-      field: "category",
-      headerName: "Category",
-      width: 140,
-      renderCell: ({ value }) => <Chip label={value} size="small" />,
-    },
-    {
-      field: "source",
-      headerName: "Source",
-      width: 110,
-      renderCell: ({ value }) => (
-        <Chip label={value} variant="outlined" size="small" />
+  const handleColumnMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setColumnMenuAnchor(event.currentTarget);
+  };
+
+  const handleColumnMenuClose = () => {
+    setColumnMenuAnchor(null);
+  };
+
+  // Add actions column
+  const columnsWithActions = useMemo(
+    () => [
+      ...suggestionsColumns,
+      {
+        field: "actions",
+        headerName: "",
+        width: 80,
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        renderCell: ({ row }: GridRenderCellParams<Suggestion>) => (
+          <IconButton
+            size="small"
+            onClick={(e) => handleMenuOpen(e, row)}
+            color="default"
+          >
+            <MoreHorizIcon fontSize="small" />
+          </IconButton>
+        ),
+      },
+    ],
+    [handleMenuOpen]
+  );
+
+  // Filter visible columns based on user preferences and screen size
+  const visibleColumns = useMemo(
+    () => [
+      ...filterVisibleColumns(
+        suggestionsColumns,
+        columnVisibility,
+        isMobile,
+        isTablet,
+        isDesktop
       ),
-    },
-    {
-      field: "status",
-      headerName: "Status",
-      width: 150,
-      renderCell: ({ value }) => (
-        <Chip label={value} color={getStatusColor(value)} size="small" />
-      ),
-    },
-    {
-      field: "dateCreated",
-      headerName: "Created",
-      type: "string",
-      width: 170,
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 80,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: ({ row }) => (
-        <IconButton
-          size="small"
-          onClick={(e) => handleMenuOpen(e, row)}
-          color="default"
-        >
-          <MoreHorizIcon fontSize="small" />
-        </IconButton>
-      ),
-    },
-  ];
+      // Always show actions column
+      columnsWithActions[columnsWithActions.length - 1],
+    ],
+    [columnsWithActions, columnVisibility, isMobile, isTablet, isDesktop]
+  );
 
   const handleBatchUpdate = useCallback(async () => {
     if (selection.ids.size === 0) return;
@@ -201,45 +219,114 @@ const SuggestionsGrid = () => {
   }, [selection, targetStatus, batchUpdate]);
 
   return (
-    <Stack gap={1.5} sx={{ height: "80vh" }}>
-      <SuggestionsFilterBar
-        filters={filters}
-        setFilters={setFilters}
-        onAddClick={handleCreate}
-      />
-
-      <DataGrid
-        rows={data?.suggestions ?? []}
-        columns={columns}
-        getRowId={(row) => row.id}
-        loading={loading}
-        checkboxSelection
-        disableColumnMenu
-        rowSelectionModel={selection}
-        onRowSelectionModelChange={(model) => setSelection(model)}
-        pageSizeOptions={[25, 50, 100]}
-        initialState={{
-          pagination: { paginationModel: { pageSize: 50, page: 0 } },
-          sorting: { sortModel: [{ field: "dateCreated", sort: "desc" }] },
-        }}
-        sx={{
-          [`& .${gridClasses.columnHeader}, & .${gridClasses.cell}`]: {
-            outline: "transparent",
-          },
-          [`& .${gridClasses.columnHeader}:focus-within, & .${gridClasses.cell}:focus-within`]:
-            {
-              outline: "none",
-            },
-        }}
-        slots={{
-          footer: () => (
-            <SuggestionsGridFooter
-              selectionCount={selection.ids.size}
-              onBulkAssignClick={openBulkModal}
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "calc(100vh - 100px)",
+        minHeight: "600px",
+        width: "100%",
+        p: 2,
+      }}
+    >
+      <Stack gap={1.5} sx={{ flex: 1, minHeight: 0 }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Box sx={{ flex: 1 }}>
+            <SuggestionsFilterBar
+              filters={filters}
+              setFilters={setFilters}
+              onAddClick={handleCreate}
             />
-          ),
+          </Box>
+          <Button
+            variant="outlined"
+            startIcon={<ViewColumnIcon />}
+            onClick={handleColumnMenuOpen}
+            size="small"
+            sx={{ height: "fit-content" }}
+          >
+            Columns
+          </Button>
+        </Stack>
+
+        <Box sx={{ flex: 1, minHeight: 0 }}>
+          <DataGridPro
+            rows={data?.suggestions ?? []}
+            columns={visibleColumns}
+            getRowId={(row) => row.id}
+            loading={loading}
+            checkboxSelection
+            disableColumnMenu
+            rowSelectionModel={selection}
+            onRowSelectionModelChange={(model) => setSelection(model)}
+            pageSizeOptions={[25, 50, 100]}
+            initialState={{
+              pagination: { paginationModel: { pageSize: 50, page: 0 } },
+              sorting: { sortModel: [{ field: "dateCreated", sort: "desc" }] },
+              pinnedColumns: { right: ["actions"] },
+            }}
+            sx={{
+              height: "100%",
+              width: "100%",
+              [`& .${gridClasses.columnHeader}, & .${gridClasses.cell}`]: {
+                outline: "transparent",
+              },
+              [`& .${gridClasses.columnHeader}:focus-within, & .${gridClasses.cell}:focus-within`]:
+                {
+                  outline: "none",
+                },
+            }}
+            slots={{
+              footer: () => (
+                <SuggestionsGridFooter
+                  selectionCount={selection.ids.size}
+                  onBulkAssignClick={openBulkModal}
+                />
+              ),
+            }}
+          />
+        </Box>
+      </Stack>
+
+      {/* Column Visibility Menu */}
+      <Popover
+        open={Boolean(columnMenuAnchor)}
+        anchorEl={columnMenuAnchor}
+        onClose={handleColumnMenuClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
         }}
-      />
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+      >
+        <Box sx={{ p: 2, minWidth: 200 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+            Show Columns
+          </Typography>
+          <Divider sx={{ mb: 1 }} />
+          <Stack spacing={0.5}>
+            {(
+              Object.keys(columnVisibility) as Array<keyof ColumnVisibility>
+            ).map((field) => (
+              <FormControlLabel
+                key={field}
+                control={
+                  <Checkbox
+                    checked={columnVisibility[field]}
+                    onChange={() => toggleColumn(field)}
+                    size="small"
+                  />
+                }
+                label={COLUMN_LABELS[field]}
+                sx={{ ml: 0 }}
+              />
+            ))}
+          </Stack>
+        </Box>
+      </Popover>
 
       {/* Actions Menu */}
       <Menu
@@ -312,7 +399,7 @@ const SuggestionsGrid = () => {
           {successMessage}
         </Alert>
       </Snackbar>
-    </Stack>
+    </Box>
   );
 };
 
