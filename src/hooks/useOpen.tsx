@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+
 const useOpen = (initialVisiblity = false) => {
   const [isVisible, setVisibility] = useState<boolean>(initialVisiblity);
   const toggle = useCallback(
@@ -14,4 +15,5 @@ const useOpen = (initialVisiblity = false) => {
     close,
   };
 };
+
 export default useOpen;

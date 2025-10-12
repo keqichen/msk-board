@@ -46,7 +46,7 @@ import {
   type ColumnVisibility,
   suggestionsColumns,
 } from "../constants/suggestionsColumns";
-import { useResponsive } from "../hooks/useResponsive";
+import useResponsive from "../hooks/useResponsive";
 
 // Lazy load modals
 const BulkAssignModal = React.lazy(() => import("./Modals/BulkAssignModal"));

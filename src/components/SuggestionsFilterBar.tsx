@@ -12,7 +12,7 @@ import {
 import { CATEGORIES, PRIORITIES, STATUSES } from "../constants/suggestions";
 import { toTitleCase } from "../utils/stringUtils";
 import { useQuery } from "@apollo/client/react";
-import { useResponsive } from "../hooks/useResponsive";
+import useResponsive from "../hooks/useResponsive";
 
 type SuggestionsFilterBarProps = {
   filters: SuggestionsQueryVariables;

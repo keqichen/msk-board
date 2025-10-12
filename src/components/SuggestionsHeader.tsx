@@ -7,13 +7,21 @@ import {
 } from "@mui/material";
 import { Search as SearchIcon, Add } from "@mui/icons-material";
 import { useBoardStore } from "../store/useBoardStore";
+import { useState, useEffect } from "react";
+import useDebounce from "../hooks/useDebounce";
 
 interface SuggestionsHeaderProps {
   onAddClick: () => void;
 }
 
 const SuggestionsHeader = ({ onAddClick }: SuggestionsHeaderProps) => {
-  const { filters, setFilters } = useBoardStore();
+  const { setFilters } = useBoardStore();
+  const [searchValue, setSearchValue] = useState("");
+  const debouncedSearchValue = useDebounce(searchValue);
+
+  useEffect(() => {
+    setFilters({ q: debouncedSearchValue });
+  }, [debouncedSearchValue, setFilters]);
 
   return (
     <Stack
@@ -29,8 +37,8 @@ const SuggestionsHeader = ({ onAddClick }: SuggestionsHeaderProps) => {
       <Stack direction="row" spacing={2} alignItems="center">
         <TextField
           placeholder="Search..."
-          value={filters.q || ""}
-          onChange={(e) => setFilters({ ...filters, q: e.target.value })}
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
           size="small"
           slotProps={{
             input: {
