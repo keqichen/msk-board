@@ -52,19 +52,23 @@ import { useResponsive } from "../hooks/useResponsive";
 const BulkAssignModal = React.lazy(() => import("./Modals/BulkAssignModal"));
 const SuggestionModal = React.lazy(() => import("./Modals/SuggestionModal"));
 
-const SuggestionsGrid = () => {
+type SuggestionsGridProps = {
+  isSuggestionModalOpen: boolean;
+  openSuggestionModal: () => void;
+  closeSuggestionModal: () => void;
+};
+
+const SuggestionsGrid = ({
+  isSuggestionModalOpen,
+  openSuggestionModal,
+  closeSuggestionModal,
+}: SuggestionsGridProps) => {
   const { isSmallScreen, isMediumScreen, isLargeScreen } = useResponsive();
 
   const {
     isVisible: isBulkModalOpen,
     open: openBulkModal,
     close: closeBulkModal,
-  } = useOpen();
-
-  const {
-    isVisible: isSuggestionModalOpen,
-    open: openSuggestionModal,
-    close: closeSuggestionModal,
   } = useOpen();
 
   const [successMessage, setSuccessMessage] = useState<string | null>(null);

@@ -1,12 +1,10 @@
 import {
   Autocomplete,
-  Button,
   MenuItem,
   Select,
   Stack,
   TextField,
 } from "@mui/material";
-import { Add } from "@mui/icons-material";
 import {
   EmployeesDocument,
   type SuggestionsQueryVariables,
@@ -25,7 +23,6 @@ type SuggestionsFilterBarProps = {
 export default function SuggestionsFilterBar({
   filters,
   setFilters,
-  onAddClick,
 }: SuggestionsFilterBarProps) {
   const { isSmallScreen, isLargeScreen } = useResponsive();
 
@@ -109,15 +106,6 @@ export default function SuggestionsFilterBar({
           ))}
         </Select>
       )}
-
-      <Button
-        variant="contained"
-        startIcon={<Add />}
-        onClick={onAddClick}
-        sx={{ ml: "auto", textTransform: "none", minWidth: "180px" }}
-      >
-        Add Suggestion
-      </Button>
     </Stack>
   );
 }
