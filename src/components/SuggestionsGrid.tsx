@@ -13,17 +13,10 @@ import {
   ListItemIcon,
   ListItemText,
   Box,
-  Button,
-  Popover,
-  FormControlLabel,
-  Checkbox,
-  Typography,
-  Divider,
 } from "@mui/material";
 import {
   MoreHoriz as MoreHorizIcon,
   Edit as EditIcon,
-  ViewColumn as ViewColumnIcon,
 } from "@mui/icons-material";
 import { useMutation, useQuery } from "@apollo/client/react";
 
@@ -40,11 +33,10 @@ import useOpen from "../hooks/useOpen";
 import { useState, useCallback, useMemo } from "react";
 import {
   filterVisibleColumns,
-  COLUMN_LABELS,
-  type ColumnVisibility,
   suggestionsColumns,
 } from "../constants/suggestionsColumns";
 import useResponsive from "../hooks/useResponsive";
+import ColumnVisibilityConfiguration from "./ColumnVisibilityConfiguration";
 
 // Lazy load modals
 const BulkAssignModal = React.lazy(() => import("./Modals/BulkAssignModal"));
@@ -64,9 +56,6 @@ const SuggestionsGrid = ({ onEdit }: SuggestionsGridProps) => {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [menuSuggestion, setMenuSuggestion] = useState<Suggestion | null>(null);
-  const [columnMenuAnchor, setColumnMenuAnchor] = useState<null | HTMLElement>(
-    null
-  );
 
   const [selection, setSelection] = useState<GridRowSelectionModel>({
     type: "include",
@@ -114,14 +103,6 @@ const SuggestionsGrid = ({ onEdit }: SuggestionsGridProps) => {
     setAnchorEl(null);
     setMenuSuggestion(null);
   }, []);
-
-  const handleColumnMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setColumnMenuAnchor(event.currentTarget);
-  };
-
-  const handleColumnMenuClose = () => {
-    setColumnMenuAnchor(null);
-  };
 
   // Add actions column
   const columnsWithActions = useMemo(
@@ -224,19 +205,10 @@ const SuggestionsGrid = ({ onEdit }: SuggestionsGridProps) => {
           </Box>
 
           {!isSmallScreen && (
-            <Button
-              variant="outlined"
-              startIcon={<ViewColumnIcon />}
-              onClick={handleColumnMenuOpen}
-              size="medium"
-              sx={{
-                height: "fit-content",
-                textTransform: "none",
-                minWidth: "100px",
-              }}
-            >
-              Columns
-            </Button>
+            <ColumnVisibilityConfiguration
+              columnVisibility={columnVisibility}
+              onToggleColumn={toggleColumn}
+            />
           )}
         </Stack>
 
@@ -275,46 +247,6 @@ const SuggestionsGrid = ({ onEdit }: SuggestionsGridProps) => {
           />
         </Box>
       </Stack>
-
-      {/* Column Visibility Menu */}
-      <Popover
-        open={Boolean(columnMenuAnchor)}
-        anchorEl={columnMenuAnchor}
-        onClose={handleColumnMenuClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-      >
-        <Box sx={{ p: 2, minWidth: 200 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-            Show Columns
-          </Typography>
-          <Divider sx={{ mb: 1 }} />
-          <Stack spacing={0.5}>
-            {(
-              Object.keys(columnVisibility) as Array<keyof ColumnVisibility>
-            ).map((field) => (
-              <FormControlLabel
-                key={field}
-                control={
-                  <Checkbox
-                    checked={columnVisibility[field]}
-                    onChange={() => toggleColumn(field)}
-                    size="small"
-                  />
-                }
-                label={COLUMN_LABELS[field]}
-                sx={{ ml: 0 }}
-              />
-            ))}
-          </Stack>
-        </Box>
-      </Popover>
 
       {/* Actions Menu */}
       <Menu
