@@ -50,18 +50,17 @@ import useResponsive from "../hooks/useResponsive";
 
 // Lazy load modals
 const BulkAssignModal = React.lazy(() => import("./Modals/BulkAssignModal"));
-const SuggestionModal = React.lazy(() => import("./Modals/SuggestionModal"));
 
 type SuggestionsGridProps = {
-  isSuggestionModalOpen: boolean;
-  openSuggestionModal: () => void;
-  closeSuggestionModal: () => void;
+  onEdit: (suggestion: Suggestion) => void;
+  successMessage: string | null;
+  setSuccessMessage: (message: string | null) => void;
 };
 
 const SuggestionsGrid = ({
-  isSuggestionModalOpen,
-  openSuggestionModal,
-  closeSuggestionModal,
+  onEdit,
+  successMessage,
+  setSuccessMessage,
 }: SuggestionsGridProps) => {
   const { isSmallScreen, isMediumScreen, isLargeScreen } = useResponsive();
 
@@ -71,9 +70,6 @@ const SuggestionsGrid = ({
     close: closeBulkModal,
   } = useOpen();
 
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [selectedSuggestion, setSelectedSuggestion] =
-    useState<Suggestion | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [menuSuggestion, setMenuSuggestion] = useState<Suggestion | null>(null);
   const [columnMenuAnchor, setColumnMenuAnchor] = useState<null | HTMLElement>(
@@ -101,23 +97,12 @@ const SuggestionsGrid = ({
 
   const handleEdit = useCallback(
     (suggestion: Suggestion) => {
-      setSelectedSuggestion(suggestion);
-      openSuggestionModal();
+      onEdit(suggestion);
       setAnchorEl(null);
       setMenuSuggestion(null);
     },
-    [openSuggestionModal]
+    [onEdit]
   );
-
-  const handleCreate = useCallback(() => {
-    setSelectedSuggestion(null);
-    openSuggestionModal();
-  }, [openSuggestionModal]);
-
-  const handleModalClose = useCallback(() => {
-    closeSuggestionModal();
-    setSelectedSuggestion(null);
-  }, [closeSuggestionModal]);
 
   const handleMenuOpen = useCallback(
     (event: React.MouseEvent<HTMLElement>, suggestion: Suggestion) => {
@@ -222,7 +207,7 @@ const SuggestionsGrid = ({
 
     setSelection({ type: "include", ids: new Set() });
     setSuccessMessage(`Successfully updated ${items.length} suggestion(s)`);
-  }, [selection, targetStatus, batchUpdate]);
+  }, [selection, targetStatus, batchUpdate, setSuccessMessage]);
 
   return (
     <Box
@@ -236,28 +221,28 @@ const SuggestionsGrid = ({
       }}
     >
       <Stack gap={1.5} sx={{ flex: 1, minHeight: 0 }}>
+        {/* Only show SuggestionsFilterBar if it has other filters besides search/add */}
+        {/* Otherwise, remove this section */}
         <Stack direction="row" spacing={1} alignItems="center">
           <Box sx={{ flex: 1 }}>
-            <SuggestionsFilterBar
-              filters={filters}
-              setFilters={setFilters}
-              onAddClick={handleCreate}
-            />
+            <SuggestionsFilterBar filters={filters} setFilters={setFilters} />
           </Box>
 
-          <Button
-            variant="outlined"
-            startIcon={<ViewColumnIcon />}
-            onClick={handleColumnMenuOpen}
-            size="medium"
-            sx={{
-              height: "fit-content",
-              textTransform: "none",
-              minWidth: "100px",
-            }}
-          >
-            Columns
-          </Button>
+          {!isSmallScreen && (
+            <Button
+              variant="outlined"
+              startIcon={<ViewColumnIcon />}
+              onClick={handleColumnMenuOpen}
+              size="medium"
+              sx={{
+                height: "fit-content",
+                textTransform: "none",
+                minWidth: "100px",
+              }}
+            >
+              Columns
+            </Button>
+          )}
         </Stack>
 
         <Box sx={{ flex: 1, minHeight: 0 }}>
@@ -368,25 +353,6 @@ const SuggestionsGrid = ({
             targetStatus={targetStatus}
             setTargetStatus={setTargetStatus}
             onConfirm={handleBatchUpdate}
-          />
-        )}
-      </React.Suspense>
-
-      {/* Create/Edit Suggestion Modal */}
-      <React.Suspense fallback={null}>
-        {isSuggestionModalOpen && (
-          <SuggestionModal
-            open={isSuggestionModalOpen}
-            onClose={handleModalClose}
-            filters={filters}
-            suggestion={selectedSuggestion}
-            onSuccess={() => {
-              setSuccessMessage(
-                selectedSuggestion
-                  ? "Suggestion updated successfully!"
-                  : "Suggestion created successfully!"
-              );
-            }}
           />
         )}
       </React.Suspense>

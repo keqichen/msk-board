@@ -17,7 +17,6 @@ import useResponsive from "../hooks/useResponsive";
 type SuggestionsFilterBarProps = {
   filters: SuggestionsQueryVariables;
   setFilters: (partial: Partial<SuggestionsQueryVariables>) => void;
-  onAddClick: () => void;
 };
 
 export default function SuggestionsFilterBar({
