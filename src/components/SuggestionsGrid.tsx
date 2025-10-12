@@ -245,21 +245,19 @@ const SuggestionsGrid = ({
             />
           </Box>
 
-          {!isSmallScreen && (
-            <Button
-              variant="outlined"
-              startIcon={<ViewColumnIcon />}
-              onClick={handleColumnMenuOpen}
-              size="medium"
-              sx={{
-                height: "fit-content",
-                textTransform: "none",
-                minWidth: "100px",
-              }}
-            >
-              Columns
-            </Button>
-          )}
+          <Button
+            variant="outlined"
+            startIcon={<ViewColumnIcon />}
+            onClick={handleColumnMenuOpen}
+            size="medium"
+            sx={{
+              height: "fit-content",
+              textTransform: "none",
+              minWidth: "100px",
+            }}
+          >
+            Columns
+          </Button>
         </Stack>
 
         <Box sx={{ flex: 1, minHeight: 0 }}>

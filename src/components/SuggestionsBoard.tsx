@@ -18,9 +18,7 @@ const SuggestionsBoard = () => {
       sx={{ pt: 3 }}
       justifyContent="space-between"
     >
-      {/* Handle add new suggestion modal */}
       <SuggestionsHeader onAddClick={openSuggestionModal} />
-      {/* Handle edit suggestion modal */}
       <SuggestionsGrid
         isSuggestionModalOpen={isSuggestionModalOpen}
         openSuggestionModal={openSuggestionModal}

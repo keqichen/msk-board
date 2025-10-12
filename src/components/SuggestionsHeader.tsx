@@ -9,6 +9,7 @@ import { Search as SearchIcon, Add } from "@mui/icons-material";
 import { useBoardStore } from "../store/useBoardStore";
 import { useState, useEffect } from "react";
 import useDebounce from "../hooks/useDebounce";
+import useResponsive from "../hooks/useResponsive";
 
 interface SuggestionsHeaderProps {
   onAddClick: () => void;
@@ -16,8 +17,9 @@ interface SuggestionsHeaderProps {
 
 const SuggestionsHeader = ({ onAddClick }: SuggestionsHeaderProps) => {
   const { setFilters } = useBoardStore();
+  const { isSmallScreen } = useResponsive();
   const [searchValue, setSearchValue] = useState("");
-  const debouncedSearchValue = useDebounce(searchValue);
+  const debouncedSearchValue = useDebounce(searchValue, 500);
 
   useEffect(() => {
     setFilters({ q: debouncedSearchValue });
@@ -34,7 +36,11 @@ const SuggestionsHeader = ({ onAddClick }: SuggestionsHeaderProps) => {
         MSK Suggestion Board
       </Typography>
 
-      <Stack direction="row" spacing={2} alignItems="center">
+      <Stack
+        direction={isSmallScreen ? "column" : "row"}
+        spacing={2}
+        alignItems={isSmallScreen ? "stretch" : "center"}
+      >
         <TextField
           placeholder="Search..."
           value={searchValue}
@@ -49,14 +55,17 @@ const SuggestionsHeader = ({ onAddClick }: SuggestionsHeaderProps) => {
               ),
             },
           }}
-          sx={{ width: 300 }}
+          sx={{ width: isSmallScreen ? "100%" : 300 }}
         />
 
         <Button
           variant="contained"
           startIcon={<Add />}
           onClick={onAddClick}
-          sx={{ textTransform: "none", minWidth: "180px" }}
+          sx={{
+            textTransform: "none",
+            minWidth: isSmallScreen ? "100%" : "180px",
+          }}
         >
           Add Suggestion
         </Button>
