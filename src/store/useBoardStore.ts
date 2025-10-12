@@ -9,6 +9,11 @@ import {
   DEFAULT_COLUMN_VISIBILITY,
 } from "../constants/suggestionsColumns"
 
+type NotificationState = {
+  message: string | null;
+  severity: 'success' | 'error' | 'info' | 'warning';
+};
+
 type BoardState = {
   // Filters state
   filters: SuggestionsQueryVariables
@@ -19,6 +24,11 @@ type BoardState = {
   setColumnVisibility: (visibility: ColumnVisibility) => void
   toggleColumn: (field: keyof ColumnVisibility) => void
   resetColumnVisibility: () => void
+
+  // Notification state
+  notification: NotificationState;
+  showNotification: (message: string, severity?: NotificationState['severity']) => void;
+  clearNotification: () => void;
 }
 
 export const useBoardStore = create<BoardState>()(
@@ -42,6 +52,13 @@ export const useBoardStore = create<BoardState>()(
         })),
       resetColumnVisibility: () =>
         set({ columnVisibility: DEFAULT_COLUMN_VISIBILITY }),
+
+      // Notification state
+      notification: { message: null, severity: 'success' },
+      showNotification: (message, severity = 'success') =>
+        set({ notification: { message, severity } }),
+      clearNotification: () =>
+        set({ notification: { message: null, severity: 'success' } }),
     }),
     { name: 'vida-board-ui' }
   )

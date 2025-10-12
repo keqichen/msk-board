@@ -5,12 +5,14 @@ import useOpen from "../hooks/useOpen";
 import { useState, useCallback, lazy, Suspense } from "react";
 import { useBoardStore } from "../store/useBoardStore";
 import type { Suggestion } from "../gql/generated";
+import GlobalNotification from "./GlobalNotification";
 
 // Lazy load the modal
 const SuggestionModal = lazy(() => import("./Modals/SuggestionModal"));
 
 const SuggestionsBoard = () => {
-  const { filters } = useBoardStore();
+  const { filters, showNotification } = useBoardStore();
+
   const {
     isVisible: isSuggestionModalOpen,
     open: openSuggestionModal,
@@ -19,7 +21,6 @@ const SuggestionsBoard = () => {
 
   const [selectedSuggestion, setSelectedSuggestion] =
     useState<Suggestion | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleCreate = useCallback(() => {
     setSelectedSuggestion(null);
@@ -48,11 +49,7 @@ const SuggestionsBoard = () => {
       justifyContent="space-between"
     >
       <SuggestionsHeader onAddClick={handleCreate} />
-      <SuggestionsGrid
-        onEdit={handleEdit}
-        successMessage={successMessage}
-        setSuccessMessage={setSuccessMessage}
-      />
+      <SuggestionsGrid onEdit={handleEdit} />
 
       {/* Lazy load Suggestion Modal */}
       <Suspense fallback={null}>
@@ -63,7 +60,7 @@ const SuggestionsBoard = () => {
             filters={filters}
             suggestion={selectedSuggestion}
             onSuccess={() => {
-              setSuccessMessage(
+              showNotification(
                 selectedSuggestion
                   ? "Suggestion updated successfully!"
                   : "Suggestion created successfully!"
@@ -72,6 +69,9 @@ const SuggestionsBoard = () => {
           />
         )}
       </Suspense>
+
+      {/* Global notification */}
+      <GlobalNotification />
     </Box>
   );
 };

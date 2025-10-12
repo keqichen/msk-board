@@ -7,8 +7,6 @@ import {
 import { DataGridPro } from "@mui/x-data-grid-pro";
 import {
   Stack,
-  Snackbar,
-  Alert,
   IconButton,
   Menu,
   MenuItem,
@@ -53,15 +51,9 @@ const BulkAssignModal = React.lazy(() => import("./Modals/BulkAssignModal"));
 
 type SuggestionsGridProps = {
   onEdit: (suggestion: Suggestion) => void;
-  successMessage: string | null;
-  setSuccessMessage: (message: string | null) => void;
 };
 
-const SuggestionsGrid = ({
-  onEdit,
-  successMessage,
-  setSuccessMessage,
-}: SuggestionsGridProps) => {
+const SuggestionsGrid = ({ onEdit }: SuggestionsGridProps) => {
   const { isSmallScreen, isMediumScreen, isLargeScreen } = useResponsive();
 
   const {
@@ -86,8 +78,13 @@ const SuggestionsGrid = ({
   );
 
   // Get state from Zustand store
-  const { filters, setFilters, columnVisibility, toggleColumn } =
-    useBoardStore();
+  const {
+    filters,
+    setFilters,
+    columnVisibility,
+    toggleColumn,
+    showNotification,
+  } = useBoardStore();
 
   const { data, loading } = useQuery(SuggestionsDocument, {
     variables: filters,
@@ -206,8 +203,8 @@ const SuggestionsGrid = ({
     });
 
     setSelection({ type: "include", ids: new Set() });
-    setSuccessMessage(`Successfully updated ${items.length} suggestion(s)`);
-  }, [selection, targetStatus, batchUpdate, setSuccessMessage]);
+    showNotification(`Successfully updated ${items.length} suggestion(s)`);
+  }, [selection, targetStatus, batchUpdate, showNotification]);
 
   return (
     <Box
@@ -221,8 +218,6 @@ const SuggestionsGrid = ({
       }}
     >
       <Stack gap={1.5} sx={{ flex: 1, minHeight: 0 }}>
-        {/* Only show SuggestionsFilterBar if it has other filters besides search/add */}
-        {/* Otherwise, remove this section */}
         <Stack direction="row" spacing={1} alignItems="center">
           <Box sx={{ flex: 1 }}>
             <SuggestionsFilterBar filters={filters} setFilters={setFilters} />
@@ -356,23 +351,6 @@ const SuggestionsGrid = ({
           />
         )}
       </React.Suspense>
-
-      {/* Success Snackbar */}
-      <Snackbar
-        open={!!successMessage}
-        autoHideDuration={4000}
-        onClose={() => setSuccessMessage(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setSuccessMessage(null)}
-          severity="success"
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {successMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };
