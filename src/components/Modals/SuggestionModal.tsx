@@ -66,7 +66,7 @@ const SuggestionModal = ({
     control,
     handleSubmit,
     reset,
-    formState: { errors, isValid },
+    formState: { errors, isValid, isDirty },
   } = useForm<FormValues>({
     defaultValues: {
       employee: null,
@@ -385,13 +385,18 @@ const SuggestionModal = ({
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={handleClose} disabled={loading}>
+          <Button
+            onClick={handleClose}
+            disabled={loading}
+            sx={{ textTransform: "none" }}
+          >
             Cancel
           </Button>
           <Button
             type="submit"
             variant="contained"
-            disabled={!isValid || loading}
+            disabled={!isValid || loading || (isEditMode && !isDirty)}
+            sx={{ textTransform: "none" }}
           >
             {loading
               ? isEditMode
