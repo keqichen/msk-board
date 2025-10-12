@@ -28,8 +28,10 @@ import {
   type Employee,
   type SuggestionsQueryVariables,
   type Suggestion,
+  Source,
+  SuggestionStatus,
 } from "../../gql/generated";
-import { CATEGORIES, PRIORITIES } from "../../constants/suggestions";
+import { CATEGORIES, PRIORITIES, STATUSES } from "../../constants/suggestions";
 import { useState, useEffect } from "react";
 import { toTitleCase } from "../../utils/stringUtils";
 
@@ -44,6 +46,7 @@ interface SuggestionModalProps {
 interface FormValues {
   employee: Employee | null;
   category: Category;
+  status: SuggestionStatus;
   description: string;
   priority: Priority;
   notes?: string;
@@ -68,6 +71,7 @@ const SuggestionModal = ({
     defaultValues: {
       employee: null,
       category: Category.Exercise,
+      status: SuggestionStatus.Pending,
       description: "",
       priority: Priority.Medium,
       notes: "",
@@ -87,6 +91,7 @@ const SuggestionModal = ({
       reset({
         employee: employee || null,
         category: suggestion.category,
+        status: suggestion.status,
         description: suggestion.description,
         priority: suggestion.priority,
         notes: suggestion.notes || "",
@@ -181,10 +186,10 @@ const SuggestionModal = ({
               id: "temp-" + Date.now(),
               employeeId: data.employee.id,
               employeeName: data.employee.name,
-              source: "ADMIN",
+              source: Source.Admin,
               category: data.category,
               description: data.description.trim(),
-              status: "PENDING",
+              status: SuggestionStatus.Pending,
               priority: data.priority,
               dateCreated: new Date().toISOString(),
               dateUpdated: new Date().toISOString(),
@@ -259,6 +264,29 @@ const SuggestionModal = ({
                     />
                   )}
                 />
+              )}
+            />
+
+            {/* Status Selection */}
+            <Controller
+              name="status"
+              control={control}
+              rules={{ required: "Status is required" }}
+              disabled={!isEditMode}
+              render={({ field }) => (
+                <FormControl fullWidth required error={!!errors.status}>
+                  <InputLabel>Status</InputLabel>
+                  <Select {...field} label="Status">
+                    {STATUSES.map((status) => (
+                      <MenuItem key={status} value={status}>
+                        {toTitleCase(status)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.status && (
+                    <FormHelperText>{errors.status.message}</FormHelperText>
+                  )}
+                </FormControl>
               )}
             />
 

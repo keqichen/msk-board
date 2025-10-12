@@ -121,15 +121,15 @@ export const suggestionsColumns = [
 export const filterVisibleColumns = (
   columns: GridColDef[],
   columnVisibility: ColumnVisibility,
-  isMobile: boolean,
-  isTablet: boolean,
-  isDesktop: boolean
+  isSmallScreen: boolean,
+  isMediumScreen: boolean,
+  isLargeScreen: boolean
 ): GridColDef[] => {
   return columns.filter((col) => {
     // Apply responsive hiding rules
-    if (isMobile) {
+    if (isSmallScreen) {
       if (!MOBILE_VISIBLE_COLUMNS.includes(col.field)) return false;
-    } else if (isTablet && !isDesktop) {
+    } else if (isMediumScreen && !isLargeScreen) {
       if (TABLET_HIDDEN_COLUMNS.includes(col.field)) return false;
     }
 

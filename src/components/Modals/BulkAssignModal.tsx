@@ -12,14 +12,7 @@ import {
 } from "@mui/material";
 import { SuggestionStatus } from "../../gql/generated";
 import { toTitleCase } from "../../utils/stringUtils";
-
-const STATUSES: SuggestionStatus[] = [
-  SuggestionStatus.Pending,
-  SuggestionStatus.InProgress,
-  SuggestionStatus.Completed,
-  SuggestionStatus.Dismissed,
-  SuggestionStatus.Overdue,
-];
+import { STATUSES } from "../../constants/suggestions";
 
 type BulkAssignDialogProps = {
   open: boolean;
