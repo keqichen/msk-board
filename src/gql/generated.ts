@@ -143,6 +143,7 @@ export type UpdateSuggestionInput = {
   id: Scalars['ID']['input'];
   notes?: InputMaybe<Scalars['String']['input']>;
   priority?: InputMaybe<Priority>;
+  status?: InputMaybe<SuggestionStatus>;
 };
 
 export type EmployeesQueryVariables = Exact<{ [key: string]: never; }>;

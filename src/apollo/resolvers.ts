@@ -133,34 +133,25 @@ export const resolvers: Resolvers = {
     updateSuggestion: async (
       _parent,
       { input }: { input: UpdateSuggestionInput },
-      context
     ) => {
       const { id, ...updates } = input;
-      
-      // Validate that suggestion exists
-      const suggestion = await context.db.suggestion.findUnique({
-        where: { id },
-        include: { employee: true },
-      });
+      const suggestion = db.suggestions.find(sug => sug.id === id);
       
       if (!suggestion) {
         throw new Error('Suggestion not found');
       }
       
-      // Update the suggestion
-      const updatedSuggestion = await context.db.suggestion.update({
-        where: { id },
-        data: {
-          ...updates,
-          dateUpdated: new Date(),
-        },
-        include: { employee: true },
-      });
-      
-      return {
-        ...updatedSuggestion,
-        employeeName: updatedSuggestion.employee.name,
-      };
+     // Apply updates
+     Object.assign(suggestion, {
+      ...updates,
+      dateUpdated: new Date().toISOString(),
+     });
+
+      if (updates.status === SuggestionStatus.Completed) {
+        suggestion.dateCompleted = suggestion.dateUpdated
+      }
+  
+      return suggestion;
     },
 
     batchUpdateSuggestionStatus: (_parent, { items }) => {

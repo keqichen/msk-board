@@ -155,6 +155,7 @@ const SuggestionModal = ({
               description: data.description.trim(),
               priority: data.priority,
               notes: data.notes?.trim() || "",
+              status: data.status,
             },
           },
           optimisticResponse: {
@@ -166,6 +167,7 @@ const SuggestionModal = ({
               description: data.description.trim(),
               priority: data.priority,
               notes: data.notes?.trim() || "",
+              status: data.status,
               dateUpdated: new Date().toISOString(),
             },
           },
