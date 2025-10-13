@@ -83,9 +83,7 @@ describe("SuggestionsGrid", () => {
         </MockedProvider>
       );
 
-      await waitFor(() => {
-        expect(screen.getByText("No rows")).toBeInTheDocument();
-      });
+      expect(await screen.findByText("No rows")).toBeInTheDocument();
     });
 
     it("should render column visibility button", () => {
@@ -111,9 +109,7 @@ describe("SuggestionsGrid", () => {
         </MockedProvider>
       );
 
-      await waitFor(() => {
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
-      });
+      expect(await screen.findByText("John Doe")).toBeInTheDocument();
 
       // Find checkboxes (first one is "select all", rest are row checkboxes)
       const checkboxes = screen.getAllByRole("checkbox");
@@ -134,17 +130,12 @@ describe("SuggestionsGrid", () => {
         </MockedProvider>
       );
 
-      await waitFor(() => {
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
-      });
+      expect(await screen.findByText("John Doe")).toBeInTheDocument();
 
       const checkboxes = screen.getAllByRole("checkbox");
       await user.click(checkboxes[1]);
 
-      // Should show "1 selected" in footer
-      await waitFor(() => {
-        expect(screen.getByText(/1 row selected/i)).toBeInTheDocument();
-      });
+      expect(screen.getByText(/1 row selected/i)).toBeInTheDocument();
     });
   });
 
@@ -158,9 +149,7 @@ describe("SuggestionsGrid", () => {
         </MockedProvider>
       );
 
-      await waitFor(() => {
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
-      });
+      expect(await screen.findByText("John Doe")).toBeInTheDocument();
 
       // Find all "more" buttons
       const moreButtons = screen.getAllByRole("button", { name: "" });
@@ -172,10 +161,8 @@ describe("SuggestionsGrid", () => {
         await user.click(firstMoreButton);
 
         // Menu should appear
-        await waitFor(() => {
-          expect(screen.getByRole("menu")).toBeInTheDocument();
-          expect(screen.getByText("Edit")).toBeInTheDocument();
-        });
+        expect(screen.getByRole("menu")).toBeInTheDocument();
+        expect(screen.getByText("Edit")).toBeInTheDocument();
       }
     });
     it("should call onEdit when clicking edit in menu", async () => {
@@ -187,9 +174,7 @@ describe("SuggestionsGrid", () => {
         </MockedProvider>
       );
 
-      await waitFor(() => {
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
-      });
+      expect(await screen.findByText("John Doe")).toBeInTheDocument();
 
       // Find the row containing "John Doe"
       const johnDoeRow = screen
@@ -205,9 +190,7 @@ describe("SuggestionsGrid", () => {
       expect(moreButton).toBeTruthy();
       await user.click(moreButton!);
 
-      await waitFor(() => {
-        expect(screen.getByText("Edit")).toBeInTheDocument();
-      });
+      expect(screen.getByText("Edit")).toBeInTheDocument();
 
       // Click edit
       await user.click(screen.getByText("Edit"));
@@ -236,9 +219,7 @@ describe("SuggestionsGrid", () => {
       await user.click(columnsButton);
 
       // Menu should appear with column options
-      await waitFor(() => {
-        expect(screen.getByRole("menu")).toBeInTheDocument();
-      });
+      expect(screen.getByRole("menu")).toBeInTheDocument();
     });
   });
 });

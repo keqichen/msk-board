@@ -5,53 +5,19 @@ import userEvent from "@testing-library/user-event";
 import { MockedProvider } from "@apollo/client/testing/react";
 import SuggestionModal from "./SuggestionModal";
 import {
-  EmployeesDocument,
   CreateSuggestionDocument,
   UpdateSuggestionDocument,
   Category,
   Priority,
   SuggestionStatus,
   Source,
-  SuggestionsDocument,
 } from "../../gql/generated";
-
-const mockEmployees = [
-  {
-    id: "1",
-    name: "John Doe",
-    department: "Engineering",
-    riskLevel: "LOW",
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    department: "HR",
-    riskLevel: "MEDIUM",
-  },
-];
-
-const mockSuggestion = {
-  id: "suggestion-1",
-  employeeId: "1",
-  employeeName: "John Doe",
-  source: Source.Admin,
-  category: Category.Exercise,
-  description: "Test description",
-  status: SuggestionStatus.Pending,
-  priority: Priority.High,
-  dateCreated: "2024-01-01T00:00:00.000Z",
-  dateUpdated: "2024-01-01T00:00:00.000Z",
-  dateCompleted: null,
-  notes: "Test notes",
-  createdBy: "Admin",
-};
-
-const mockFilters = {
-  q: "",
-  status: null,
-  category: null,
-  priority: null,
-};
+import {
+  employeeMockResolver,
+  mockFilters,
+  mockSuggestion,
+  suggestionMockResolver,
+} from "./SuggestionModal.fixtures";
 
 describe("SuggestionModal", () => {
   const mockOnClose = vi.fn();
@@ -63,21 +29,8 @@ describe("SuggestionModal", () => {
 
   describe("Create Mode", () => {
     it("should render create mode correctly", async () => {
-      const mocks = [
-        {
-          request: {
-            query: EmployeesDocument,
-          },
-          result: {
-            data: {
-              employees: mockEmployees,
-            },
-          },
-        },
-      ];
-
       render(
-        <MockedProvider mocks={mocks}>
+        <MockedProvider mocks={employeeMockResolver}>
           <SuggestionModal
             open={true}
             onClose={mockOnClose}
@@ -96,21 +49,8 @@ describe("SuggestionModal", () => {
     });
 
     it("should show validation errors for required fields", async () => {
-      const mocks = [
-        {
-          request: {
-            query: EmployeesDocument,
-          },
-          result: {
-            data: {
-              employees: mockEmployees,
-            },
-          },
-        },
-      ];
-
       render(
-        <MockedProvider mocks={mocks}>
+        <MockedProvider mocks={employeeMockResolver}>
           <SuggestionModal
             open={true}
             onClose={mockOnClose}
@@ -130,21 +70,9 @@ describe("SuggestionModal", () => {
 
     it("should validate description length", async () => {
       const user = userEvent.setup();
-      const mocks = [
-        {
-          request: {
-            query: EmployeesDocument,
-          },
-          result: {
-            data: {
-              employees: mockEmployees,
-            },
-          },
-        },
-      ];
 
       render(
-        <MockedProvider mocks={mocks}>
+        <MockedProvider mocks={employeeMockResolver}>
           <SuggestionModal
             open={true}
             onClose={mockOnClose}
@@ -172,32 +100,8 @@ describe("SuggestionModal", () => {
     it("should successfully create a suggestion", async () => {
       const user = userEvent.setup();
       const mocks = [
-        {
-          request: {
-            query: EmployeesDocument,
-          },
-          result: {
-            data: {
-              employees: mockEmployees,
-            },
-          },
-        },
-        {
-          request: {
-            query: SuggestionsDocument,
-            variables: {
-              q: "",
-              status: null,
-              category: null,
-              priority: null,
-            },
-          },
-          result: {
-            data: {
-              suggestions: [],
-            },
-          },
-        },
+        ...employeeMockResolver,
+        ...suggestionMockResolver,
         {
           request: {
             query: CreateSuggestionDocument,
@@ -252,10 +156,8 @@ describe("SuggestionModal", () => {
       await user.click(employeeInput);
       await user.type(employeeInput, "John");
 
-      await waitFor(() => {
-        const option = screen.getByText("John Doe (Engineering)");
-        expect(option).toBeInTheDocument();
-      });
+      const option = screen.getByText("John Doe (Engineering)");
+      expect(option).toBeInTheDocument();
 
       await user.click(screen.getByText("John Doe (Engineering)"));
 
@@ -270,9 +172,7 @@ describe("SuggestionModal", () => {
         name: /create recommendation/i,
       });
 
-      await waitFor(() => {
-        expect(submitButton).not.toBeDisabled();
-      });
+      expect(submitButton).not.toBeDisabled();
 
       await user.click(submitButton);
 
@@ -285,21 +185,8 @@ describe("SuggestionModal", () => {
 
   describe("Edit Mode", () => {
     it("should render edit mode correctly", async () => {
-      const mocks = [
-        {
-          request: {
-            query: EmployeesDocument,
-          },
-          result: {
-            data: {
-              employees: mockEmployees,
-            },
-          },
-        },
-      ];
-
       render(
-        <MockedProvider mocks={mocks}>
+        <MockedProvider mocks={employeeMockResolver}>
           <SuggestionModal
             open={true}
             onClose={mockOnClose}
@@ -317,21 +204,8 @@ describe("SuggestionModal", () => {
     });
 
     it("should populate form with existing suggestion data", async () => {
-      const mocks = [
-        {
-          request: {
-            query: EmployeesDocument,
-          },
-          result: {
-            data: {
-              employees: mockEmployees,
-            },
-          },
-        },
-      ];
-
       render(
-        <MockedProvider mocks={mocks}>
+        <MockedProvider mocks={employeeMockResolver}>
           <SuggestionModal
             open={true}
             onClose={mockOnClose}
@@ -342,31 +216,17 @@ describe("SuggestionModal", () => {
         </MockedProvider>
       );
 
-      await waitFor(() => {
-        const descriptionInput = screen.getByDisplayValue("Test description");
-        expect(descriptionInput).toBeInTheDocument();
+      const descriptionInput =
+        await screen.findByDisplayValue("Test description");
+      expect(descriptionInput).toBeInTheDocument();
 
-        const notesInput = screen.getByDisplayValue("Test notes");
-        expect(notesInput).toBeInTheDocument();
-      });
+      const notesInput = screen.getByDisplayValue("Test notes");
+      expect(notesInput).toBeInTheDocument();
     });
 
     it("should disable submit button when form is pristine", async () => {
-      const mocks = [
-        {
-          request: {
-            query: EmployeesDocument,
-          },
-          result: {
-            data: {
-              employees: mockEmployees,
-            },
-          },
-        },
-      ];
-
       render(
-        <MockedProvider mocks={mocks}>
+        <MockedProvider mocks={employeeMockResolver}>
           <SuggestionModal
             open={true}
             onClose={mockOnClose}
@@ -377,31 +237,16 @@ describe("SuggestionModal", () => {
         </MockedProvider>
       );
 
-      await waitFor(() => {
-        const submitButton = screen.getByRole("button", {
-          name: /update recommendation/i,
-        });
-        expect(submitButton).toBeDisabled();
+      const submitButton = await screen.findByRole("button", {
+        name: /update recommendation/i,
       });
+      expect(submitButton).toBeDisabled();
     });
 
     it("should enable submit button when form is dirty", async () => {
       const user = userEvent.setup();
-      const mocks = [
-        {
-          request: {
-            query: EmployeesDocument,
-          },
-          result: {
-            data: {
-              employees: mockEmployees,
-            },
-          },
-        },
-      ];
-
       render(
-        <MockedProvider mocks={mocks}>
+        <MockedProvider mocks={employeeMockResolver}>
           <SuggestionModal
             open={true}
             onClose={mockOnClose}
@@ -412,53 +257,25 @@ describe("SuggestionModal", () => {
         </MockedProvider>
       );
 
-      await waitFor(() => {
-        expect(
-          screen.getByDisplayValue("Test description")
-        ).toBeInTheDocument();
-      });
+      expect(
+        await screen.findByDisplayValue("Test description")
+      ).toBeInTheDocument();
 
       const descriptionInput = screen.getByDisplayValue("Test description");
       await user.clear(descriptionInput);
       await user.type(descriptionInput, "Updated description here");
 
-      await waitFor(() => {
-        const submitButton = screen.getByRole("button", {
-          name: /update recommendation/i,
-        });
-        expect(submitButton).not.toBeDisabled();
+      const submitButton = screen.getByRole("button", {
+        name: /update recommendation/i,
       });
+      expect(submitButton).not.toBeDisabled();
     });
 
     it("should successfully update a suggestion", async () => {
       const user = userEvent.setup();
       const mocks = [
-        {
-          request: {
-            query: EmployeesDocument,
-          },
-          result: {
-            data: {
-              employees: mockEmployees,
-            },
-          },
-        },
-        {
-          request: {
-            query: SuggestionsDocument,
-            variables: {
-              q: "",
-              status: null,
-              category: null,
-              priority: null,
-            },
-          },
-          result: {
-            data: {
-              suggestions: [],
-            },
-          },
-        },
+        ...employeeMockResolver,
+        ...suggestionMockResolver,
         {
           request: {
             query: UpdateSuggestionDocument,
@@ -498,11 +315,9 @@ describe("SuggestionModal", () => {
         </MockedProvider>
       );
 
-      await waitFor(() => {
-        expect(
-          screen.getByDisplayValue("Test description")
-        ).toBeInTheDocument();
-      });
+      expect(
+        await screen.findByDisplayValue("Test description")
+      ).toBeInTheDocument();
 
       const descriptionInput = screen.getByDisplayValue("Test description");
       await user.clear(descriptionInput);
@@ -512,9 +327,7 @@ describe("SuggestionModal", () => {
         name: /update recommendation/i,
       });
 
-      await waitFor(() => {
-        expect(submitButton).not.toBeDisabled();
-      });
+      expect(submitButton).not.toBeDisabled();
 
       await user.click(submitButton);
 
@@ -525,21 +338,8 @@ describe("SuggestionModal", () => {
     });
 
     it("should disable employee selection in edit mode", async () => {
-      const mocks = [
-        {
-          request: {
-            query: EmployeesDocument,
-          },
-          result: {
-            data: {
-              employees: mockEmployees,
-            },
-          },
-        },
-      ];
-
       render(
-        <MockedProvider mocks={mocks}>
+        <MockedProvider mocks={employeeMockResolver}>
           <SuggestionModal
             open={true}
             onClose={mockOnClose}
@@ -550,12 +350,10 @@ describe("SuggestionModal", () => {
         </MockedProvider>
       );
 
-      await waitFor(() => {
-        const employeeInput = screen.getByRole("combobox", {
-          name: /employee/i,
-        });
-        expect(employeeInput).toBeDisabled();
+      const employeeInput = await screen.findByRole("combobox", {
+        name: /employee/i,
       });
+      expect(employeeInput).toBeDisabled();
     });
   });
 });
