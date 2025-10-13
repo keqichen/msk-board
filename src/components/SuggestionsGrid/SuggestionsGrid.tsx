@@ -235,12 +235,10 @@ const SuggestionsGrid = ({ onEdit }: SuggestionsGridProps) => {
             <SuggestionsFilterBar filters={filters} setFilters={setFilters} />
           </Box>
 
-          {!isSmallScreen && (
-            <ColumnVisibilityConfiguration
-              columnVisibility={columnVisibility}
-              onToggleColumn={toggleColumn}
-            />
-          )}
+          <ColumnVisibilityConfiguration
+            columnVisibility={columnVisibility}
+            onToggleColumn={toggleColumn}
+          />
         </Stack>
 
         <Box sx={{ flex: 1, minHeight: 0 }}>
