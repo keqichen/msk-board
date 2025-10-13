@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
 import SuggestionsHeader from "./SuggestionsHeader";
-import SuggestionsGrid from "./SuggestionsGrid";
+import SuggestionsGrid from "./SuggestionsGrid/SuggestionsGrid";
 import useOpen from "../hooks/useOpen";
 import { useState, useCallback, lazy, Suspense } from "react";
 import { useBoardStore } from "../store/useBoardStore";

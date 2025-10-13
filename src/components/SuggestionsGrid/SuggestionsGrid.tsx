@@ -25,23 +25,23 @@ import {
   BatchUpdateSuggestionStatusDocument,
   SuggestionStatus,
   type Suggestion,
-} from "../gql/generated";
-import { useBoardStore } from "../store/useBoardStore";
+} from "../../gql/generated";
+import { useBoardStore } from "../../store/useBoardStore";
 import SuggestionsFilterBar from "./SuggestionsFilterBar";
 import SuggestionsGridFooter, {
   type SuggestionsGridFooterProps,
 } from "./SuggestionsGridFooter";
-import useOpen from "../hooks/useOpen";
+import useOpen from "../../hooks/useOpen";
 import { useState, useCallback, useMemo } from "react";
 import {
   filterVisibleColumns,
   suggestionsColumns,
-} from "../constants/suggestionsColumns";
-import useResponsive from "../hooks/useResponsive";
+} from "../../constants/suggestionsColumns";
+import useResponsive from "../../hooks/useResponsive";
 import ColumnVisibilityConfiguration from "./ColumnVisibilityConfiguration";
 
 // Lazy load modals
-const BulkAssignModal = React.lazy(() => import("./Modals/BulkAssignModal"));
+const BulkAssignModal = React.lazy(() => import("../Modals/BulkAssignModal"));
 
 type SuggestionsGridProps = {
   onEdit: (suggestion: Suggestion) => void;

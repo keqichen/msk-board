@@ -14,7 +14,7 @@ import { ViewColumn as ViewColumnIcon } from "@mui/icons-material";
 import {
   COLUMN_LABELS,
   type ColumnVisibility,
-} from "../constants/suggestionsColumns";
+} from "../../constants/suggestionsColumns";
 
 type ColumnVisibilityMenuProps = {
   columnVisibility: ColumnVisibility;
