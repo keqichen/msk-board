@@ -63,8 +63,14 @@ const BulkAssignModal = ({
         </FormControl>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleConfirm} variant="contained">
+        <Button onClick={onClose} sx={{ textTransform: "none" }}>
+          Cancel
+        </Button>
+        <Button
+          onClick={handleConfirm}
+          variant="contained"
+          sx={{ textTransform: "none" }}
+        >
           Update
         </Button>
       </DialogActions>

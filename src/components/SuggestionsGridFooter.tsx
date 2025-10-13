@@ -5,22 +5,26 @@ import {
   useGridSelector,
   gridRowSelectionIdsSelector,
 } from "@mui/x-data-grid-pro";
-type SuggestionsGridFooterProps = {
-  onBulkAssignClick: () => void;
+import type { HTMLAttributes } from "react";
+
+export type SuggestionsGridFooterProps = HTMLAttributes<HTMLDivElement> & {
+  onBulkAssignClick?: () => void;
 };
 
 const SuggestionsGridFooter = ({
   onBulkAssignClick,
+  ...otherProps
 }: SuggestionsGridFooterProps) => {
   const apiRef = useGridApiContext();
   const selectedIds = useGridSelector(apiRef, gridRowSelectionIdsSelector); // GridRowId[]
+
   return (
-    <GridFooterContainer>
+    <GridFooterContainer {...otherProps}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 2, px: 2 }}>
         <Button
           variant="contained"
           size="small"
-          disabled={!selectedIds.size}
+          disabled={selectedIds.size === 0}
           onClick={onBulkAssignClick}
           sx={{ textTransform: "none" }}
         >

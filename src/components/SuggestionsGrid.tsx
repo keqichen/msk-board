@@ -28,7 +28,9 @@ import {
 } from "../gql/generated";
 import { useBoardStore } from "../store/useBoardStore";
 import SuggestionsFilterBar from "./SuggestionsFilterBar";
-import SuggestionsGridFooter from "./SuggestionsGridFooter";
+import SuggestionsGridFooter, {
+  type SuggestionsGridFooterProps,
+} from "./SuggestionsGridFooter";
 import useOpen from "../hooks/useOpen";
 import { useState, useCallback, useMemo } from "react";
 import {
@@ -57,6 +59,7 @@ const SuggestionsGrid = ({ onEdit }: SuggestionsGridProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [menuSuggestion, setMenuSuggestion] = useState<Suggestion | null>(null);
 
+  // MUI DataGrid Pro uses {type: 'include' | 'exclude', ids: Set}
   const [selection, setSelection] = useState<GridRowSelectionModel>({
     type: "include",
     ids: new Set(),
@@ -103,6 +106,29 @@ const SuggestionsGrid = ({ onEdit }: SuggestionsGridProps) => {
     setAnchorEl(null);
     setMenuSuggestion(null);
   }, []);
+
+  // Helper to get selected IDs from the selection model
+  const getSelectedIds = useCallback((): string[] => {
+    if (selection.type === "exclude") {
+      // When "Select All" is clicked, MUI only tracks which rows to EXCLUDE
+      // So we manually get ALL row IDs from the data, then remove excluded ones
+      const allIds = (data?.suggestions ?? []).map((s) => s.id);
+      return allIds.filter((id) => !selection.ids.has(id));
+    } else {
+      // Normal selection: MUI tracks which rows are INCLUDED
+      // Just return the IDs that are in the Set
+      return Array.from(selection.ids).map(String);
+    }
+  }, [selection, data]);
+
+  // Helper to get selection count
+  const getSelectionCount = useCallback((): number => {
+    if (selection.type === "exclude") {
+      const totalRows = data?.suggestions.length ?? 0;
+      return totalRows - selection.ids.size;
+    }
+    return selection.ids.size;
+  }, [selection, data]);
 
   // Add actions column
   const columnsWithActions = useMemo(
@@ -152,9 +178,11 @@ const SuggestionsGrid = ({ onEdit }: SuggestionsGridProps) => {
   );
 
   const handleBatchUpdate = useCallback(async () => {
-    if (selection.ids.size === 0) return;
+    const selectedIds = getSelectedIds();
 
-    const items = Array.from(selection.ids).map((id) => ({
+    if (selectedIds.length === 0) return;
+
+    const items = selectedIds.map((id) => ({
       id: String(id),
       status: targetStatus,
     }));
@@ -183,9 +211,12 @@ const SuggestionsGrid = ({ onEdit }: SuggestionsGridProps) => {
       },
     });
 
-    setSelection({ type: "include", ids: new Set() });
+    setSelection({
+      type: "include",
+      ids: new Set(),
+    } as unknown as GridRowSelectionModel);
     showNotification(`Successfully updated ${items.length} suggestion(s)`);
-  }, [selection, targetStatus, batchUpdate, showNotification]);
+  }, [getSelectedIds, targetStatus, batchUpdate, showNotification]);
 
   return (
     <Box
@@ -221,7 +252,9 @@ const SuggestionsGrid = ({ onEdit }: SuggestionsGridProps) => {
             checkboxSelection
             disableColumnMenu
             rowSelectionModel={selection}
-            onRowSelectionModelChange={(model) => setSelection(model)}
+            onRowSelectionModelChange={(model) => {
+              setSelection(model);
+            }}
             pageSizeOptions={[25, 50, 100]}
             initialState={{
               pagination: { paginationModel: { pageSize: 50, page: 0 } },
@@ -240,9 +273,12 @@ const SuggestionsGrid = ({ onEdit }: SuggestionsGridProps) => {
                 },
             }}
             slots={{
-              footer: () => (
-                <SuggestionsGridFooter onBulkAssignClick={openBulkModal} />
-              ),
+              footer: SuggestionsGridFooter,
+            }}
+            slotProps={{
+              footer: {
+                onBulkAssignClick: openBulkModal,
+              } as Partial<SuggestionsGridFooterProps>,
             }}
           />
         </Box>
@@ -276,7 +312,7 @@ const SuggestionsGrid = ({ onEdit }: SuggestionsGridProps) => {
           <BulkAssignModal
             open={isBulkModalOpen}
             onClose={closeBulkModal}
-            selectionCount={selection.ids.size}
+            selectionCount={getSelectionCount()}
             targetStatus={targetStatus}
             setTargetStatus={setTargetStatus}
             onConfirm={handleBatchUpdate}
