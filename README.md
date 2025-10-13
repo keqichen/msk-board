@@ -17,6 +17,39 @@ yarn dev
 
 The application will be available at `http://localhost:5173`
 
+## Testing
+
+The project has unit and end-to-end tests in place. With additional time, I’d increase overall coverage — right now the suite prioritises the critical user flows.
+
+**Unit Tests (Vitest)**
+
+I've written unit tests for critical components using Vitest and React Testing Library:
+- `SuggestionModal`: Tests form validation, create/edit modes, and pristine state detection
+- `SuggestionsGrid`: Tests data rendering, row selection, and edit actions
+
+```bash
+# Run all unit tests with vitest ui
+yarn test:ui
+
+# Run tests in watch mode
+yarn test --watch
+
+# Run tests with coverage
+yarn test --coverage
+```
+
+**E2E Tests (Playwright)**
+
+I've implemented end-to-end tests for the bulk status update workflow using Playwright, which tests the complete user journey including UI interactions and GraphQL mutations:
+
+```bash
+# Run E2E tests
+yarn test:e2e:ui
+
+# View test report
+yarn test:e2e:report
+```
+
 ## Key Features
 
 - Create, edit, and manage MSK suggestions
@@ -40,11 +73,11 @@ The application will be available at `http://localhost:5173`
 This application uses an in-memory database loaded from `sample-data.json`. **Data resets on page refresh**. For production use, you'd want to replace this with a proper backend API.
 
 ### Frontend GraphQL Resolvers
-I've implemented GraphQL resolvers in the frontend (src/apollo/resolvers.ts) to handle queries and mutations against the in-memory data store. Normally, resolvers would live on the backend, but for this demo I wanted to simulate a full GraphQL API without requiring a separate server.
+I've implemented GraphQL resolvers in the frontend (`src/apollo/resolvers.ts`) to handle queries and mutations against the in-memory data store. Normally, resolvers would live on the backend, but for this demo I wanted to simulate a full GraphQL API without requiring a separate server.
 
 ### No Authentication / Permissions
 
-The application doesn't implement authentication/permissions. All actions are attributed to a default "Admin" user.
+The application doesn't implement authentication/role-based permissions. All actions are attributed to a default "Admin" user.
 
 ### MUI DataGrid Pro Licence
 
