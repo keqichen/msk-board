@@ -2,8 +2,25 @@
 
 A web application for managing MSK (musculoskeletal) suggestions for employees, built with React, TypeScript, GraphQL, and Material-UI.
 
+## Demo
+You can see a quick demo video here:
+https://www.loom.com/share/8dce505cd6784e73b39c1632ad40e71c?sid=2ec5956c-56cd-40d3-a1cd-8ccac0f78d77 
+
 ## Running the Application
 
+### Prerequisites
+- Node.js 20.x or higher (I recommend using [nvm](https://github.com/nvm-sh/nvm))
+```bash
+  nvm install 20
+  nvm use 20
+```
+
+- Yarn package manager
+```bash
+  npm install -g yarn
+```
+
+### Installation
 ```bash
 # Install dependencies
 yarn install
@@ -28,7 +45,7 @@ I've written unit tests for critical components using Vitest and React Testing L
 - `SuggestionsGrid`: Tests data rendering, row selection, and edit actions
 
 ```bash
-# Run all unit tests with vitest ui
+# Run all unit tests with vitest ui tool
 yarn test:ui
 
 # Run tests in watch mode
@@ -44,7 +61,7 @@ I've implemented end-to-end tests for the bulk status update workflow using Play
 
 ```bash
 # Run E2E tests
-yarn test:e2e:ui
+yarn test:e2e
 
 # View test report
 yarn test:e2e:report
@@ -105,11 +122,11 @@ In a larger application, I may mix both Zustand and Context depending on needs -
 
 **Apollo Client for Data**
 
-I picked Apollo Client because of its normalised caching system that automatically updates all queries when a single entity changes. This is more sophisticated than React Query's key-based caching and it has first-class support for optimistic updates, which really helps with making the UI feel snappy.
+I picked Apollo Client because of its normalised caching system that automatically updates all queries when a single entity changes. This is more sophisticated than React Query's key-based caching and it has first-class support for optimistic updates.
 
 **React Hook Form for Forms**
 
-React Hook Form leverages React's ref system with uncontrolled components, which means way fewer re-renders compared to Formik and Final Form that both use controlled components and re-render on every keystroke.
+React Hook Form leverages React's ref system with uncontrolled components, which means way fewer re-renders compared to Formik and Final Form that both use controlled components and re-render all fields for each field update.
 
 ### Data Layer
 
@@ -155,7 +172,7 @@ I'm using `useMemo` for expensive computations like filtering columns and `useCa
 
 **Optimistic UI**
 
-Changes appear immediately before server confirmation, which makes the application feel way more responsive. This works well for simple updates like status changes, though for more complex operations I may use loading spinners instead to set proper expectations.
+Changes appear immediately before server confirmation, which makes the application feel way more responsive. This works well for simple updates like status changes, though for more complex operations I will use loading spinners instead to set proper expectations.
 
 ### User Experience
 
@@ -175,5 +192,6 @@ If I were to continue developing this application, I'd consider:
 - **Authentication**: Add user login and role-based permissions
 - **Status-Based Edit Restrictions**: Disable editing for `IN_PROGRESS` and `COMPLETED` suggestions to prevent accidental changes and data conflicts
 - **Status Workflow Enforcement**: Implement proper status transitions (e.g., PENDING → IN_PROGRESS → COMPLETED) with validation
+- **Bulk Update Batching**: Batch bulk update requests to handle large amount of data
 - **Enhanced Validation**: Integrate Yup schema validation with React Hook Form for more complex validation rules and better error messages
 - **Design System Separation**: Extract UI components into a separate design layer and use Storybook for component development and testing. This would make it easier to maintain consistent designs, test components in isolation, and create a living documentation for the design system
